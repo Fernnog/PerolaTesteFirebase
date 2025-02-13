@@ -26,10 +26,17 @@ let numeroOrcamento = 1;
 let numeroPedido = 1;
 const anoAtual = new Date().getFullYear();
 let orcamentoEditando = null;
-let pedidoEditando = null; // Adicionado para rastrear o pedido sendo editado
+let pedidoEditando = null;
 let orcamentos = [];
 let pedidos = [];
-let usuarioAtual = null; // Armazena o usuário logado
+let usuarioAtual = null;
+const itensPorPagina = 40; // Defina o número de itens por página
+let paginaAtualOrcamentos = 1; // Página atual para orçamentos
+let paginaAtualPedidos = 1;    // Página atual para pedidos
+let orcamentosFiltradosPaginados = []; // Para armazenar orçamentos filtrados para paginação
+let pedidosFiltradosPaginados = [];    // Para armazenar pedidos filtrados para paginação
+let filtroAtivoOrcamentos = false;     // Indica se o filtro de orçamentos está ativo
+let filtroAtivoPedidos = false;        // Indica se o filtro de pedidos está ativo
 /* ==== FIM SEÇÃO - VARIÁVEIS GLOBAIS ==== */
 
 /* ==== INÍCIO SEÇÃO - AUTENTICAÇÃO ==== */
@@ -71,8 +78,8 @@ function updateAuthUI(user) {
         pedidos = [];
         numeroOrcamento = 1;
         numeroPedido = 1;
-        mostrarOrcamentosGerados(); // Atualiza a exibição
-        mostrarPedidosRealizados();
+        mostrarOrcamentosGerados(1); // Atualiza a exibição
+        mostrarPedidosRealizados(1);
     }
 }
 
@@ -157,8 +164,8 @@ async function carregarDados() {
             }
         });
         console.log("Dados carregados do Firebase:", orcamentos, pedidos);
-        mostrarOrcamentosGerados();
-        mostrarPedidosRealizados();
+        mostrarOrcamentosGerados(1);
+        mostrarPedidosRealizados(1);
 
     } catch (error) {
         console.error("Erro ao carregar dados do Firebase:", error);
@@ -385,7 +392,7 @@ async function gerarOrcamento() {
 
     alert("Orçamento gerado com sucesso!");
      mostrarPagina('orcamentos-gerados'); //Adicionado
-     mostrarOrcamentosGerados();          //Adicionado
+     mostrarOrcamentosGerados(1);          //Adicionado
      exibirOrcamentoEmHTML(orcamento); // Chamar a função para exibir o orçamento aqui
 }
 
@@ -470,12 +477,18 @@ function exibirOrcamentoEmHTML(orcamento) {
 
 /* ==== FIM SEÇÃO - GERAÇÃO DE ORÇAMENTO ==== */
 
-/* ==== INÍCIO SEÇÃO - ORÇAMENTOS GERADOS ==== */
-function mostrarOrcamentosGerados() {
+/* ==== INÍCIO SEÇÃO - ORÇAMENTOS GERADOS (PAGINAÇÃO) ==== */
+function mostrarOrcamentosGerados(novaPagina = 1) {
+    paginaAtualOrcamentos = novaPagina;
     const tbody = document.querySelector("#tabela-orcamentos tbody");
     tbody.innerHTML = '';
 
-    orcamentos.forEach(orcamento => {  // Usa a variável global 'orcamentos'
+    let listaOrcamentosExibir = filtroAtivoOrcamentos ? orcamentosFiltradosPaginados : orcamentos;
+    const startIndex = (paginaAtualOrcamentos - 1) * itensPorPagina;
+    const endIndex = startIndex + itensPorPagina;
+    const orcamentosPaginados = listaOrcamentosExibir.slice(startIndex, endIndex);
+
+    orcamentosPaginados.forEach(orcamento => {
         const row = tbody.insertRow();
         const cellNumero = row.insertCell();
         const cellData = row.insertCell();
@@ -492,12 +505,12 @@ function mostrarOrcamentosGerados() {
 
         let buttonVisualizar = document.createElement('button');
         buttonVisualizar.textContent = 'Visualizar';
-        buttonVisualizar.classList.add('btnVisualizarOrcamento'); // Adicione uma classe para selecionar depois
+        buttonVisualizar.classList.add('btnVisualizarOrcamento');
         cellAcoes.appendChild(buttonVisualizar);
 
         if (!orcamento.pedidoGerado) {
             cellAcoes.innerHTML = `<button type="button" class="btnEditarOrcamento" data-orcamento-id="${orcamento.id}">Editar</button>
-                                   `; // Removido o botão visualizar daqui, ele já foi adicionado acima
+                                   `;
             let buttonGerarPedido = document.createElement('button');
             buttonGerarPedido.textContent = 'Gerar Pedido';
             buttonGerarPedido.classList.add('btnGerarPedido');
@@ -506,7 +519,7 @@ function mostrarOrcamentosGerados() {
         }
     });
 
-      // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
+    // Adicionar event listeners para botões dinâmicos (depois de inserir no DOM)
     const btnsEditarOrcamento = document.querySelectorAll('.btnEditarOrcamento');
     btnsEditarOrcamento.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -538,16 +551,48 @@ function mostrarOrcamentosGerados() {
             }
         });
     });
+
+    atualizarBotoesPaginacaoOrcamentos(listaOrcamentosExibir.length);
+}
+
+function atualizarBotoesPaginacaoOrcamentos(totalItens) {
+    const totalPaginas = Math.ceil(totalItens / itensPorPagina);
+    const prevButton = document.getElementById('prevPageOrcamentos');
+    const nextButton = document.getElementById('nextPageOrcamentos');
+    const currentPageSpan = document.getElementById('currentPageOrcamentos');
+
+    currentPageSpan.textContent = `Página ${paginaAtualOrcamentos}`;
+
+    if (paginaAtualOrcamentos <= 1) {
+        prevButton.disabled = true;
+    } else {
+        prevButton.disabled = false;
+    }
+
+    if (paginaAtualOrcamentos >= totalPaginas) {
+        nextButton.disabled = true;
+    } else {
+        nextButton.disabled = false;
+    }
+}
+
+function nextPageOrcamentos() {
+    mostrarOrcamentosGerados(paginaAtualOrcamentos + 1);
+}
+
+function previousPageOrcamentos() {
+    mostrarOrcamentosGerados(paginaAtualOrcamentos - 1);
 }
 
 function filtrarOrcamentos() {
+    filtroAtivoOrcamentos = true; // Define que o filtro está ativo
     const dataInicio = document.getElementById('filtroDataInicioOrcamento').value;
     const dataFim = document.getElementById('filtroDataFimOrcamento').value;
     const numeroOrcamentoFiltro = parseInt(document.getElementById('filtroNumeroOrcamento').value);
     const anoOrcamentoFiltro = parseInt(document.getElementById('filtroAnoOrcamento').value);
     const clienteOrcamentoFiltro = document.getElementById('filtroClienteOrcamento').value.toLowerCase();
 
-    const orcamentosFiltrados = orcamentos.filter(orcamento => {
+    orcamentosFiltradosPaginados = orcamentos.filter(orcamento => { // Usa orcamentos aqui
         const [numOrcamento, anoOrcamento] = orcamento.numero.split('/');
         const dataOrcamento = new Date(orcamento.dataOrcamento);
         const nomeCliente = orcamento.cliente.toLowerCase();
@@ -559,255 +604,28 @@ function filtrarOrcamentos() {
                nomeCliente.includes(clienteOrcamentoFiltro);
     });
 
-    atualizarListaOrcamentos(orcamentosFiltrados);
+    mostrarOrcamentosGerados(1); // Resetar para a página 1 após filtrar
 }
 
 function atualizarListaOrcamentos(orcamentosFiltrados) {
-    const tbody = document.querySelector("#tabela-orcamentos tbody");
-    tbody.innerHTML = '';
-
-    orcamentosFiltrados.forEach(orcamento => {
-        const row = tbody.insertRow();
-        const cellNumero = row.insertCell();
-        const cellData = row.insertCell();
-        const cellCliente = row.insertCell();
-        const cellTotal = row.insertCell();
-        const cellNumeroPedido = row.insertCell();
-        const cellAcoes = row.insertCell();
-
-        cellNumero.textContent = orcamento.numero;
-        cellData.textContent = orcamento.dataOrcamento;
-        cellCliente.textContent = orcamento.cliente;
-        cellTotal.textContent = formatarMoeda(orcamento.total);
-        cellNumeroPedido.textContent = orcamento.numeroPedido || 'N/A';
-
-        let buttonVisualizar = document.createElement('button');
-        buttonVisualizar.textContent = 'Visualizar';
-        buttonVisualizar.classList.add('btnVisualizarOrcamento'); // Adicione uma classe para selecionar depois
-        cellAcoes.appendChild(buttonVisualizar);
-
-         if (!orcamento.pedidoGerado) {
-             cellAcoes.innerHTML = `<button type="button" class="btnEditarOrcamento" data-orcamento-id="${orcamento.id}">Editar</button>
-                                    `; // Removido o botão visualizar daqui, ele já foi adicionado acima
-            let buttonGerarPedido = document.createElement('button');
-            buttonGerarPedido.textContent = 'Gerar Pedido';
-            buttonGerarPedido.classList.add('btnGerarPedido');
-            buttonGerarPedido.dataset.orcamentoId = orcamento.id;
-            cellAcoes.appendChild(buttonGerarPedido);
-        }
-    });
-      // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
-    const btnsEditarOrcamento = document.querySelectorAll('.btnEditarOrcamento');
-    btnsEditarOrcamento.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const orcamentoId = this.dataset.orcamentoId;
-            editarOrcamento(orcamentoId);
-        });
-    });
-
-    const btnsGerarPedido = document.querySelectorAll('.btnGerarPedido');
-    btnsGerarPedido.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const orcamentoId = this.dataset.orcamentoId;
-            gerarPedido(orcamentoId);
-        });
-    });
-      // Novos event listeners para os botões "Visualizar"
-    const btnsVisualizarOrcamento = document.querySelectorAll('.btnVisualizarOrcamento');
-    btnsVisualizarOrcamento.forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Encontra o orçamento correspondente na lista `orcamentos` (você pode precisar de um dataset-id se não estiver funcionando corretamente)
-            const numeroOrcamentoBotao = this.closest('tr').cells[0].textContent; // Pega o número da linha
-            const orcamentoParaVisualizar = orcamentos.find(orcamento => orcamento.numero === numeroOrcamentoBotao);
-            if (orcamentoParaVisualizar) {
-                exibirOrcamentoEmHTML(orcamentoParaVisualizar);
-                console.log('Visualizar Orçamento:', orcamentoParaVisualizar);
-            } else {
-                console.error("Orçamento não encontrado para visualização.");
-            }
-        });
-    });
+    orcamentosFiltradosPaginados = orcamentosFiltrados; // Atualiza a lista filtrada
+    mostrarOrcamentosGerados(1); // Resetar para a página 1 após atualizar lista filtrada
 }
+/* ==== FIM SEÇÃO - ORÇAMENTOS GERADOS (PAGINAÇÃO) ==== */
 
-function editarOrcamento(orcamentoId) {
-    const orcamento = orcamentos.find(o => o.id === orcamentoId);
-    if (!orcamento) {
-        alert("Orçamento não encontrado.");
-        return;
-    }
 
-    if (orcamento.pedidoGerado) {
-        alert("Não é possível editar um orçamento que já gerou um pedido.");
-        return;
-    }
-
-    orcamentoEditando = orcamento.id; // Usando o ID agora
-
-    document.getElementById("dataOrcamento").value = orcamento.dataOrcamento;
-    document.getElementById("dataValidade").value = orcamento.dataValidade;
-    document.getElementById("cliente").value = orcamento.cliente;
-    document.getElementById("endereco").value = orcamento.endereco;
-    document.getElementById("tema").value = orcamento.tema;
-    document.getElementById("cidade").value = orcamento.cidade;
-    document.getElementById("telefone").value = orcamento.telefone;
-    document.getElementById("clienteEmail").value = orcamento.email; // Alterado para clienteEmail
-    document.getElementById("cores").value = orcamento.cores;
-    document.getElementById("valorFrete").value = formatarMoeda(orcamento.valorFrete);
-    document.getElementById("valorOrcamento").value = formatarMoeda(orcamento.valorOrcamento);
-    document.getElementById("total").value = formatarMoeda(orcamento.total);
-    document.getElementById("observacoes").value = orcamento.observacoes;
-
-    const tbody = document.querySelector("#tabelaProdutos tbody");
-    tbody.innerHTML = '';
-    orcamento.produtos.forEach(produto => {
-        const row = tbody.insertRow();
-        const cellQuantidade = row.insertCell();
-        const cellDescricao = row.insertCell();
-        const cellValorUnit = row.insertCell();
-        const cellValorTotal = row.insertCell();
-        const cellAcoes = row.insertCell();
-
-        cellQuantidade.innerHTML = `<input type="number" class="produto-quantidade" value="${produto.quantidade}" min="1">`;
-        cellDescricao.innerHTML = `<input type="text" class="produto-descricao" value="${produto.descricao}">`;
-        cellValorUnit.innerHTML = `<input type="text" class="produto-valor-unit" value="${formatarMoeda(produto.valorUnit)}">`;
-        cellValorTotal.textContent = formatarMoeda(produto.valorTotal);
-        cellAcoes.innerHTML = '<button type="button" onclick="excluirProduto(this)">Excluir</button>';
-    });
-
-    document.querySelectorAll('input[name="pagamento"]').forEach(el => {
-        el.checked = orcamento.pagamento.includes(el.value);
-    });
-
-    mostrarPagina('form-orcamento');
-    document.getElementById("btnGerarOrcamento").style.display = "none";
-    document.getElementById("btnAtualizarOrcamento").style.display = "inline-block";
-}
-
-async function atualizarOrcamento() {
-    if (orcamentoEditando === null) {
-        alert("Nenhum orçamento está sendo editado.");
-        return;
-    }
-
-  const orcamentoIndex = orcamentos.findIndex(o => o.id === orcamentoEditando); // Find by ID
-    if (orcamentoIndex === -1) {
-        alert("Orçamento não encontrado.");
-        return;
-    }
-
-    const orcamentoAtualizado = {
-        ...orcamentos[orcamentoIndex], // Mantém os dados existentes
-        dataOrcamento: document.getElementById("dataOrcamento").value,
-        dataValidade: document.getElementById("dataValidade").value,
-        cliente: document.getElementById("cliente").value,
-        endereco: document.getElementById("endereco").value,
-        tema: document.getElementById("tema").value,
-        cidade: document.getElementById("cidade").value,
-        telefone: document.getElementById("telefone").value,
-        email: document.getElementById("clienteEmail").value, // Alterado para clienteEmail
-        cores: document.getElementById("cores").value,
-        produtos: [], // Começa com um array vazio e preenche abaixo
-        pagamento: Array.from(document.querySelectorAll('input[name="pagamento"]:checked')).map(el => el.value),
-        valorFrete: converterMoedaParaNumero(document.getElementById("valorFrete").value),
-        valorOrcamento: converterMoedaParaNumero(document.getElementById("valorOrcamento").value),
-        total: converterMoedaParaNumero(document.getElementById("total").value),
-        observacoes: document.getElementById("observacoes").value,
-        tipo: 'orcamento' // Explicitamente define o tipo
-    };
-
-    const produtos = document.querySelectorAll("#tabelaProdutos tbody tr");
-    produtos.forEach(row => {
-        orcamentoAtualizado.produtos.push({ // Preenche o array de produtos
-            quantidade: parseFloat(row.querySelector(".produto-quantidade").value),
-            descricao: row.querySelector(".produto-descricao").value,
-            valorUnit: converterMoedaParaNumero(row.querySelector(".produto-valor-unit").value),
-            valorTotal: converterMoedaParaNumero(row.cells[3].textContent)
-        });
-    });
-
-    orcamentos[orcamentoIndex] = orcamentoAtualizado; // Atualiza no array local
-    await salvarDados(orcamentoAtualizado, 'orcamento'); // Salva no Firebase
-
-    document.getElementById("orcamento").reset();
-    limparCamposMoeda();
-    document.querySelector("#tabelaProdutos tbody").innerHTML = "";
-
-    alert("Orçamento atualizado com sucesso!");
-
-    orcamentoEditando = null; // Reseta o estado de edição
-    document.getElementById("btnGerarOrcamento").style.display = "inline-block";
-    document.getElementById("btnAtualizarOrcamento").style.display = "none";
-
-    mostrarPagina('orcamentos-gerados');
-    mostrarOrcamentosGerados();
-}
-/* ==== FIM SEÇÃO - ORÇAMENTOS GERADOS ==== */
-
-/* ==== INÍCIO SEÇÃO - GERAR PEDIDO A PARTIR DO ORÇAMENTO ==== */
-async function gerarPedido(orcamentoId) {
-    const orcamento = orcamentos.find(o => o.id === orcamentoId);
-    if (!orcamento) {
-        alert("Orçamento não encontrado.");
-        return;
-    }
-
-    if (orcamento.pedidoGerado) {
-        alert("Um pedido já foi gerado para este orçamento.");
-        return;
-    }
-
-    const pedido = {
-        numero: gerarNumeroFormatado(numeroPedido),
-        dataPedido: new Date().toISOString().split('T')[0],
-        dataEntrega: orcamento.dataValidade,
-        cliente: orcamento.cliente,
-        endereco: orcamento.endereco,
-        tema: orcamento.tema,
-        cidade: orcamento.cidade,
-        telefone: orcamento.telefone,
-        email: orcamento.email, // Mantém email (copia do orçamento)
-        cores: orcamento.cores,
-        pagamento: orcamento.pagamento,
-        valorFrete: orcamento.valorFrete,
-        valorOrcamento: orcamento.valorOrcamento,
-        total: orcamento.total,
-        observacoes: orcamento.observacoes,
-        entrada: 0,
-        restante: orcamento.total,
-        margemLucro: converterMoedaParaNumero(String(orcamento.margemLucro)) || 0,
-        custoMaoDeObra: converterMoedaParaNumero(String(orcamento.custoMaoDeObra)) || 0,
-        valorPedido: orcamento.valorOrcamento,
-        produtos: orcamento.produtos.map(p => ({
-            ...p,
-            valorTotal: p.quantidade * p.valorUnit
-        })),
-      tipo: 'pedido' //Adicionado
-
-    };
-
-    delete pedido.dataValidade;
-
-    await salvarDados(pedido, 'pedido');
-    numeroPedido++;
-    pedidos.push(pedido); // Adiciona o novo pedido ao array local
-
-    orcamento.numeroPedido = pedido.numero;
-    orcamento.pedidoGerado = true;
-    await salvarDados(orcamento, 'orcamento');
-
-    alert(`Pedido Nº ${pedido.numero} gerado com sucesso a partir do orçamento Nº ${orcamento.numero}!`);
-    mostrarPagina('lista-pedidos');
-    mostrarPedidosRealizados();
-    mostrarOrcamentosGerados(); // Atualiza a lista de orçamentos
-}
-/* ==== FIM SEÇÃO - GERAR PEDIDO A PARTIR DO ORÇAMENTO ==== */
-
-/* ==== INÍCIO SEÇÃO - PEDIDOS REALIZADOS ==== */
-function mostrarPedidosRealizados() {
+/* ==== INÍCIO SEÇÃO - PEDIDOS REALIZADOS (PAGINAÇÃO) ==== */
+function mostrarPedidosRealizados(novaPagina = 1) {
+    paginaAtualPedidos = novaPagina;
     const tbody = document.querySelector("#tabela-pedidos tbody");
     tbody.innerHTML = '';
 
-    pedidos.forEach(pedido => {
+    let listaPedidosExibir = filtroAtivoPedidos ? pedidosFiltradosPaginados : pedidos;
+    const startIndex = (paginaAtualPedidos - 1) * itensPorPagina;
+    const endIndex = startIndex + itensPorPagina;
+    const pedidosPaginados = listaPedidosExibir.slice(startIndex, endIndex);
+
+    pedidosPaginados.forEach(pedido => {
         const row = tbody.insertRow();
         const cellNumero = row.insertCell();
         const cellDataPedido = row.insertCell();
@@ -822,7 +640,7 @@ function mostrarPedidosRealizados() {
         cellAcoes.innerHTML = `<button type="button" class="btnEditarPedido" data-pedido-id="${pedido.id}">Editar</button>`;
     });
 
-    // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
+    // Adicionar event listeners para botões dinâmicos (depois de inserir no DOM)
     const btnsEditarPedido = document.querySelectorAll('.btnEditarPedido');
     btnsEditarPedido.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -830,16 +648,49 @@ function mostrarPedidosRealizados() {
             editarPedido(pedidoId);
         });
     });
+
+    atualizarBotoesPaginacaoPedidos(listaPedidosExibir.length);
 }
 
+function atualizarBotoesPaginacaoPedidos(totalItens) {
+    const totalPaginas = Math.ceil(totalItens / itensPorPagina);
+    const prevButton = document.getElementById('prevPagePedidos');
+    const nextButton = document.getElementById('nextPagePedidos');
+    const currentPageSpan = document.getElementById('currentPagePedidos');
+
+    currentPageSpan.textContent = `Página ${paginaAtualPedidos}`;
+
+    if (paginaAtualPedidos <= 1) {
+        prevButton.disabled = true;
+    } else {
+        prevButton.disabled = false;
+    }
+
+    if (paginaAtualPedidos >= totalPaginas) {
+        nextButton.disabled = true;
+    } else {
+        nextButton.disabled = false;
+    }
+}
+
+function nextPagePedidos() {
+    mostrarPedidosRealizados(paginaAtualPedidos + 1);
+}
+
+function previousPagePedidos() {
+    mostrarPedidosRealizados(paginaAtualPedidos - 1);
+}
+
+
 function filtrarPedidos() {
+    filtroAtivoPedidos = true; // Define que o filtro está ativo
     const dataInicio = document.getElementById('filtroDataInicioPedido').value;
     const dataFim = document.getElementById('filtroDataFimPedido').value;
     const numeroPedidoFiltro = parseInt(document.getElementById('filtroNumeroPedido').value);
     const anoPedidoFiltro = parseInt(document.getElementById('filtroAnoPedido').value);
     const clientePedidoFiltro = document.getElementById('filtroClientePedido').value.toLowerCase();
 
-    const pedidosFiltrados = pedidos.filter(pedido => {
+    pedidosFiltradosPaginados = pedidos.filter(pedido => { // Usa pedidos aqui
         const [numPedido, anoPedido] = pedido.numero.split('/');
         const dataPedido = new Date(pedido.dataPedido);
         const nomeCliente = pedido.cliente.toLowerCase();
@@ -851,145 +702,14 @@ function filtrarPedidos() {
                nomeCliente.includes(clientePedidoFiltro);
     });
 
-    atualizarListaPedidos(pedidosFiltrados);
+    mostrarPedidosRealizados(1); // Resetar para a página 1 após filtrar
 }
 
 function atualizarListaPedidos(pedidosFiltrados) {
-    const tbody = document.querySelector("#tabela-pedidos tbody");
-    tbody.innerHTML = '';
-
-    pedidosFiltrados.forEach(pedido => {
-        const row = tbody.insertRow();
-        const cellNumero = row.insertCell();
-        const cellDataPedido = row.insertCell();
-        const cellCliente = row.insertCell();
-        const cellTotal = row.insertCell();
-        const cellAcoes = row.insertCell();
-
-        cellNumero.textContent = pedido.numero;
-        cellDataPedido.textContent = pedido.dataPedido;
-        cellCliente.textContent = pedido.cliente;
-        cellTotal.textContent = formatarMoeda(pedido.total);
-        cellAcoes.innerHTML = `<button type="button" class="btnEditarPedido" data-pedido-id="${pedido.id}">Editar</button>`;
-    });
-      // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
-    const btnsEditarPedido = document.querySelectorAll('.btnEditarPedido');
-    btnsEditarPedido.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const pedidoId = this.dataset.pedidoId;
-            editarPedido(pedidoId);
-        });
-    });
+    pedidosFiltradosPaginados = pedidosFiltrados; // Atualiza a lista filtrada
+    mostrarPedidosRealizados(1);  // Resetar para a página 1 após atualizar lista filtrada
 }
-
-function editarPedido(pedidoId) {
-    pedidoEditando = pedidoId; // Define o pedidoEditando para o ID do pedido que está sendo editado
-    const pedido = pedidos.find(p => p.id === pedidoId);
-    if (!pedido) {
-        alert("Pedido não encontrado.");
-        return;
-    }
-
-    document.getElementById("dataPedidoEdicao").value = pedido.dataPedido;
-    document.getElementById("dataEntregaEdicao").value = pedido.dataEntrega;
-    document.getElementById("clienteEdicao").value = pedido.cliente;
-    document.getElementById("enderecoEdicao").value = pedido.endereco;
-    document.getElementById("temaEdicao").value = pedido.tema;
-    document.getElementById("cidadeEdicao").value = pedido.cidade;
-    document.getElementById("contatoEdicao").value = pedido.telefone;
-    document.getElementById("coresEdicao").value = pedido.cores;
-    document.getElementById("valorFreteEdicao").value = formatarMoeda(pedido.valorFrete);
-    document.getElementById("valorPedidoEdicao").value = formatarMoeda(pedido.valorPedido);
-    document.getElementById("valorPedidoEdicao").onblur = atualizarTotaisEdicao; // Garante que o onblur está definido
-    document.getElementById("totalEdicao").value = formatarMoeda(pedido.total);
-    document.getElementById("entradaEdicao").value = formatarMoeda(pedido.entrada);
-    document.getElementById("restanteEdicao").value = formatarMoeda(pedido.restante);
-    document.getElementById("margemLucroEdicao").value = formatarMoeda(pedido.margemLucro);
-    document.getElementById("custoMaoDeObraEdicao").value = formatarMoeda(pedido.custoMaoDeObra || 0);
-    document.getElementById("observacoesEdicao").value = pedido.observacoes;
-
-    const tbody = document.querySelector("#tabelaProdutosEdicao tbody");
-    tbody.innerHTML = '';
-    pedido.produtos.forEach(produto => {
-        const row = tbody.insertRow();
-        const cellQuantidade = row.insertCell();
-        const cellDescricao = row.insertCell();
-        const cellValorUnit = row.insertCell();
-        const cellValorTotal = row.insertCell();
-        const cellAcoes = row.insertCell();
-
-        cellQuantidade.innerHTML = `<input type="number" class="produto-quantidade" value="${produto.quantidade}" min="1" onchange="atualizarTotaisEdicao()">`;
-        cellDescricao.innerHTML = `<input type="text" class="produto-descricao" value="${produto.descricao}">`;
-        cellValorUnit.innerHTML = `<input type="text" class="produto-valor-unit" value="${formatarMoeda(produto.valorUnit)}" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">`;
-        cellValorTotal.textContent = formatarMoeda(produto.valorTotal);
-        cellAcoes.innerHTML = '<button type="button" onclick="excluirProdutoEdicao(this)">Excluir</button>';
-    });
-
-    const pagamentoCheckboxes = document.querySelectorAll('input[name="pagamentoEdicao"]');
-    pagamentoCheckboxes.forEach(el => el.checked = pedido.pagamento && pedido.pagamento.includes(el.value));
-
-    mostrarPagina('form-edicao-pedido');
-}
-
-async function atualizarPedido() {
-    if (pedidoEditando === null) {
-        alert("Nenhum pedido está sendo editado.");
-        return;
-    }
-
-    const pedido = pedidos.find(p => p.id === pedidoEditando);
-    if (!pedido) {
-        alert("Pedido não encontrado para atualização.");
-        return;
-    }
-
-    const pedidoAtualizado = {
-        ...pedido, // Mantém os dados existentes e o ID original
-        dataPedido: document.getElementById("dataPedidoEdicao").value,
-        dataEntrega: document.getElementById("dataEntregaEdicao").value,
-        cliente: document.getElementById("clienteEdicao").value,
-        endereco: document.getElementById("enderecoEdicao").value,
-        tema: document.getElementById("temaEdicao").value,
-        cidade: document.getElementById("cidadeEdicao").value,
-        telefone: document.getElementById("contatoEdicao").value,
-        cores: document.getElementById("coresEdicao").value,
-        produtos: [],
-        pagamento: Array.from(document.querySelectorAll('input[name="pagamentoEdicao"]:checked')).map(el => el.value),
-        valorFrete: converterMoedaParaNumero(document.getElementById("valorFreteEdicao").value),
-        valorPedido: converterMoedaParaNumero(document.getElementById("valorPedidoEdicao").value),
-        total: converterMoedaParaNumero(document.getElementById("totalEdicao").value),
-        entrada: converterMoedaParaNumero(document.getElementById("entradaEdicao").value),
-        restante: converterMoedaParaNumero(document.getElementById("restanteEdicao").value),
-        margemLucro: converterMoedaParaNumero(document.getElementById("margemLucroEdicao").value) || 0,
-        custoMaoDeObra: converterMoedaParaNumero(document.getElementById("custoMaoDeObraEdicao").value) || 0,
-        observacoes: document.getElementById("observacoesEdicao").value,
-        tipo: 'pedido'
-    };
-
-    const produtos = document.querySelectorAll("#tabelaProdutosEdicao tbody tr");
-    produtos.forEach(row => {
-        pedidoAtualizado.produtos.push({
-            quantidade: parseFloat(row.querySelector(".produto-quantidade").value),
-            descricao: row.querySelector(".produto-descricao").value,
-            valorUnit: converterMoedaParaNumero(row.querySelector(".produto-valor-unit").value),
-            valorTotal: converterMoedaParaNumero(row.cells[3].textContent)
-        });
-    });
-
-    const pedidoIndex = pedidos.findIndex(p => p.id === pedidoEditando); // Encontra o índice usando pedidoEditando
-    if (pedidoIndex !== -1) {
-        pedidos[pedidoIndex] = pedidoAtualizado; // Atualiza o array local
-    }
-    await salvarDados(pedidoAtualizado, 'pedido'); // Salva no Firebase
-
-    alert("Pedido atualizado com sucesso!");
-    pedidoEditando = null; // Limpa o pedidoEditando após salvar
-    mostrarPagina('lista-pedidos');
-    mostrarPedidosRealizados();
-}
-
-
-/* ==== FIM SEÇÃO - PEDIDOS REALIZADOS ==== */
+/* ==== FIM SEÇÃO - PEDIDOS REALIZADOS (PAGINAÇÃO) ==== */
 
 /* ==== INÍCIO SEÇÃO - RELATÓRIO ==== */
 function filtrarPedidosRelatorio() {
@@ -1111,8 +831,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const paginaId = link.dataset.pagina; // Pega o ID da página do atributo data-pagina
             mostrarPagina(paginaId); // Chama sua função mostrarPagina
             // Funções adicionais a serem chamadas ao clicar em certos menus (se necessário)
-            if (paginaId === 'orcamentos-gerados') mostrarOrcamentosGerados();
-            if (paginaId === 'lista-pedidos') mostrarPedidosRealizados();
+            if (paginaId === 'orcamentos-gerados') mostrarOrcamentosGerados(1);
+            if (paginaId === 'lista-pedidos') mostrarPedidosRealizados(1);
         });
     });
 
@@ -1287,8 +1007,20 @@ document.addEventListener('DOMContentLoaded', () => {
         entradaEdicaoInput.addEventListener('blur', atualizarRestanteEdicao); // Garante que atualiza no blur também
     }
 
+    // Event listeners para os botões de paginação dos Orçamentos
+    document.getElementById('nextPageOrcamentos').addEventListener('click', nextPageOrcamentos);
+    document.getElementById('prevPageOrcamentos').addEventListener('click', previousPageOrcamentos);
+
+    // Event listeners para os botões de paginação dos Pedidos
+    document.getElementById('nextPagePedidos').addEventListener('click', nextPagePedidos);
+    document.getElementById('prevPagePedidos').addEventListener('click', previousPagePedidos);
+
     // ==== FIM - ADICIONANDO EVENT LISTENERS PROGRAMATICAMENTE ====
 
     // Inicializar campos moeda para 'R$ 0,00' no carregamento da página
     limparCamposMoeda();
+
+    // Inicializa a exibição na primeira página ao carregar a página
+    mostrarOrcamentosGerados(1);
+    mostrarPedidosRealizados(1);
 });
