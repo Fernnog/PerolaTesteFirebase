@@ -209,9 +209,9 @@ function adicionarProduto() {
     const cellValorTotal = newRow.insertCell();
     const cellAcoes = newRow.insertCell();
 
-    cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1" onchange="atualizarTotais()">';
+    cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1">';
     cellDescricao.innerHTML = '<input type="text" class="produto-descricao">';
-    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotais()">';
+    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="0,00">';
     cellValorTotal.textContent = formatarMoeda(0);
     cellAcoes.innerHTML = '<button type="button" onclick="excluirProduto(this)">Excluir</button>';
 }
@@ -603,9 +603,9 @@ function editarOrcamento(orcamentoId) {
         const cellValorTotal = row.insertCell();
         const cellAcoes = row.insertCell();
 
-        cellQuantidade.innerHTML = `<input type="number" class="produto-quantidade" value="${produto.quantidade}" min="1" onchange="atualizarTotais()">`;
+        cellQuantidade.innerHTML = `<input type="number" class="produto-quantidade" value="${produto.quantidade}" min="1">`;
         cellDescricao.innerHTML = `<input type="text" class="produto-descricao" value="${produto.descricao}">`;
-        cellValorUnit.innerHTML = `<input type="text" class="produto-valor-unit" value="${formatarMoeda(produto.valorUnit)}" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotais()">`;
+        cellValorUnit.innerHTML = `<input type="text" class="produto-valor-unit" value="${formatarMoeda(produto.valorUnit)}">`;
         cellValorTotal.textContent = formatarMoeda(produto.valorTotal);
         cellAcoes.innerHTML = '<button type="button" onclick="excluirProduto(this)">Excluir</button>';
     });
@@ -1097,4 +1097,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // ==== ADICIONANDO EVENT LISTENERS PROGRAMATICAMENTE ====
+
+    // Event listeners para inputs de quantidade de produtos (tabela de orçamento)
+    document.querySelectorAll('#tabelaProdutos tbody').forEach(tbody => {
+        tbody.addEventListener('change', function(event) {
+            if (event.target.classList.contains('produto-quantidade')) {
+                atualizarTotais();
+            }
+        });
+    });
+
+    // Event listeners para inputs de valor unitário de produtos (tabela de orçamento)
+    document.querySelectorAll('#tabelaProdutos tbody').forEach(tbody => {
+        tbody.addEventListener('input', function(event) {
+            if (event.target.classList.contains('produto-valor-unit')) {
+                formatarEntradaMoeda(event.target);
+            }
+        });
+        tbody.addEventListener('blur', function(event) {
+            if (event.target.classList.contains('produto-valor-unit')) {
+                atualizarTotais();
+            }
+        });
+    });
+
+    // Event listeners para o input de valor do frete (formulário de orçamento)
+    const valorFreteInput = document.getElementById('valorFrete');
+    if (valorFreteInput) {
+        valorFreteInput.addEventListener('input', function() {
+            formatarEntradaMoeda(this);
+        });
+        valorFreteInput.addEventListener('blur', atualizarTotais);
+    }
+
+    // ==== FIM - ADICIONANDO EVENT LISTENERS PROGRAMATICAMENTE ====
+
 });
