@@ -254,7 +254,7 @@ function atualizarTotais() {
         const valorUnit = converterMoedaParaNumero(row.querySelector(".produto-valor-unit").value);
         const valorTotal = quantidade * valorUnit;
 
-        row.cells[3].textContent = formatarMoeda(valorTotal);
+        row.cells[3].textContent = formatarMoeda(valorTotal); // Atualiza o valor total do produto na tabela
         valorTotalOrcamento += valorTotal;
     });
 
