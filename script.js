@@ -30,17 +30,16 @@ let pedidoEditando = null;
 let orcamentos = [];
 let pedidos = [];
 let usuarioAtual = null;
-const itensPorPagina = 40; // Defina o número de itens por página
-let paginaAtualOrcamentos = 1; // Página atual para orçamentos
-let paginaAtualPedidos = 1;    // Página atual para pedidos
-let orcamentosFiltradosPaginados = []; // Para armazenar orçamentos filtrados para paginação
-let pedidosFiltradosPaginados = [];    // Para armazenar pedidos filtrados para paginação
-let filtroAtivoOrcamentos = false;     // Indica se o filtro de orçamentos está ativo
-let filtroAtivoPedidos = false;        // Indica se o filtro de pedidos está ativo
+const itensPorPagina = 40;
+let paginaAtualOrcamentos = 1;
+let paginaAtualPedidos = 1;
+let orcamentosFiltradosPaginados = [];
+let pedidosFiltradosPaginados = [];
+let filtroAtivoOrcamentos = false;
+let filtroAtivoPedidos = false;
 /* ==== FIM SEÇÃO - VARIÁVEIS GLOBAIS ==== */
 
 /* ==== INÍCIO SEÇÃO - AUTENTICAÇÃO ==== */
-// Referências aos elementos do HTML (Autenticação)
 const btnRegister = document.getElementById('btnRegister');
 const btnLogin = document.getElementById('btnLogin');
 const btnLogout = document.getElementById('btnLogout');
@@ -48,53 +47,46 @@ const authStatus = document.getElementById('authStatus');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const authSection = document.getElementById('authSection');
-const appContent = document.getElementById('appContent'); //Para mostrar Sections
+const appContent = document.getElementById('appContent');
 const btnForgotPassword = document.getElementById('btnForgotPassword');
 const passwordResetMessage = document.getElementById('passwordResetMessage');
 
-
-// Função para lidar com a interface de autenticação
 function updateAuthUI(user) {
     if (user) {
         authStatus.textContent = "Usuário autenticado: " + user.email;
         btnLogout.style.display = "inline-block";
         btnLogin.style.display = "none";
         btnRegister.style.display = "none";
-        authSection.style.display = "block"; //Sempre mostrar
-        appContent.style.display = "block";      // Mostrar conteúdo principal
-
-        // Carrega dados *somente* após autenticação
+        authSection.style.display = "block";
+        appContent.style.display = "block";
         carregarDados();
     } else {
         authStatus.textContent = "Nenhum usuário autenticado";
         btnLogout.style.display = "none";
         btnLogin.style.display = "inline-block";
         btnRegister.style.display = "inline-block";
-        authSection.style.display = "block";  //Sempre mostrar
-        appContent.style.display = "none"; // Ocultar conteúdo principal
-
-        // Limpar os dados se o usuário fizer logout.
+        authSection.style.display = "block";
+        appContent.style.display = "none";
         orcamentos = [];
         pedidos = [];
         numeroOrcamento = 1;
         numeroPedido = 1;
-        mostrarOrcamentosGerados(1); // Atualiza a exibição
+        mostrarOrcamentosGerados(1);
         mostrarPedidosRealizados(1);
     }
 }
 
-// Listeners de eventos para os botões de autenticação
 btnRegister.addEventListener('click', async () => {
     const email = emailInput.value;
     const password = passwordInput.value;
-     if (!email || !password) {
+    if (!email || !password) {
         alert("Preencha email e senha para registrar.");
         return;
     }
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         console.log("Usuário registrado:", userCredential.user);
-        updateAuthUI(userCredential.user); // Atualiza a UI
+        updateAuthUI(userCredential.user);
     } catch (error) {
         console.error("Erro no registro:", error);
         alert("Erro no registro: " + error.message);
@@ -104,7 +96,6 @@ btnRegister.addEventListener('click', async () => {
 btnLogin.addEventListener('click', async () => {
     const email = emailInput.value;
     const password = passwordInput.value;
-
     if (!email || !password) {
         alert("Preencha email e senha para entrar.");
         return;
@@ -112,7 +103,7 @@ btnLogin.addEventListener('click', async () => {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         console.log("Usuário logado:", userCredential.user);
-        updateAuthUI(userCredential.user); // Atualiza a UI
+        updateAuthUI(userCredential.user);
     } catch (error) {
         console.error("Erro no login:", error);
         alert("Erro no login: " + error.message);
@@ -123,38 +114,30 @@ btnLogout.addEventListener('click', async () => {
     try {
         await signOut(auth);
         console.log("Usuário desconectado.");
-        updateAuthUI(null); // Atualiza a UI
+        updateAuthUI(null);
     } catch (error) {
         console.error("Erro ao sair:", error);
     }
 });
 
-// Monitor de estado de autenticação
 onAuthStateChanged(auth, (user) => {
-    usuarioAtual = user; // Define a variável global
-    updateAuthUI(user); // Sempre atualiza a UI
+    usuarioAtual = user;
+    updateAuthUI(user);
 });
-
 /* ==== FIM SEÇÃO - AUTENTICAÇÃO ==== */
 
 /* ==== INÍCIO SEÇÃO - CARREGAR DADOS DO FIREBASE ==== */
 async function carregarDados() {
-    if (!usuarioAtual) {
-        // Se não tiver usuário, não carrega nada.
-        return;
-    }
-
+    if (!usuarioAtual) return;
     try {
         orcamentos = [];
         pedidos = [];
-        // Consulta com ordenação
         const q = query(orcamentosPedidosRef, orderBy("numero"));
         const snapshot = await getDocs(q);
 
         snapshot.forEach(doc => {
             const data = doc.data();
             data.id = doc.id;
-
             if (data.tipo === 'orcamento') {
                 orcamentos.push(data);
                 numeroOrcamento = Math.max(numeroOrcamento, parseInt(data.numero.split('/')[0]) + 1);
@@ -172,7 +155,6 @@ async function carregarDados() {
         alert("Erro ao carregar dados do Firebase. Veja o console para detalhes.");
     }
 }
-
 /* ==== FIM SEÇÃO - CARREGAR DADOS DO FIREBASE ==== */
 
 /* ==== INÍCIO SEÇÃO - FUNÇÕES AUXILIARES ==== */
@@ -182,7 +164,7 @@ function formatarMoeda(valor) {
 
 function formatarEntradaMoeda(input) {
     if (!input.value) {
-        input.value = 'R$ 0,00'; // Garante que o campo não fique vazio e formata como moeda zero
+        input.value = 'R$ 0,00';
         return;
     }
     let valor = input.value.replace(/\D/g, '');
@@ -191,7 +173,6 @@ function formatarEntradaMoeda(input) {
     valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
     input.value = 'R$ ' + valor;
 }
-
 
 function converterMoedaParaNumero(valor) {
     if (typeof valor !== 'string') {
@@ -207,11 +188,10 @@ function limparCamposMoeda() {
     camposMoeda.forEach(id => {
         const campo = document.getElementById(id);
         if (campo) {
-            campo.value = 'R$ 0,00'; // Define para 'R$ 0,00' em vez de '0,00'
+            campo.value = 'R$ 0,00';
         }
     });
 }
-
 
 function adicionarProduto() {
     const tbody = document.querySelector("#tabelaProdutos tbody");
@@ -225,7 +205,7 @@ function adicionarProduto() {
 
     cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1">';
     cellDescricao.innerHTML = '<input type="text" class="produto-descricao">';
-    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="R$ 0,00">'; // Valor inicial formatado
+    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="R$ 0,00">';
     cellValorTotal.textContent = formatarMoeda(0);
     cellAcoes.innerHTML = '<button type="button" onclick="excluirProduto(this)">Excluir</button>';
 }
@@ -242,7 +222,7 @@ function adicionarProdutoEdicao() {
 
     cellQuantidade.innerHTML = '<input type="number" class="produto-quantidade" value="1" min="1" onchange="atualizarTotaisEdicao()">';
     cellDescricao.innerHTML = '<input type="text" class="produto-descricao">';
-    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="R$ 0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">'; // Valor inicial formatado
+    cellValorUnit.innerHTML = '<input type="text" class="produto-valor-unit" value="R$ 0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">';
     cellValorTotal.textContent = formatarMoeda(0);
     cellAcoes.innerHTML = '<button type="button" onclick="excluirProdutoEdicao(this)">Excluir</button>';
 }
@@ -268,7 +248,7 @@ function atualizarTotais() {
         const valorUnit = converterMoedaParaNumero(row.querySelector(".produto-valor-unit").value);
         const valorTotal = quantidade * valorUnit;
 
-        row.cells[3].textContent = formatarMoeda(valorTotal); // Atualiza o valor total do produto na tabela
+        row.cells[3].textContent = formatarMoeda(valorTotal);
         valorTotalOrcamento += valorTotal;
     });
 
@@ -293,20 +273,16 @@ function atualizarTotaisEdicao() {
 
     const valorFrete = converterMoedaParaNumero(document.getElementById("valorFreteEdicao").value);
     const valorPedido = converterMoedaParaNumero(document.getElementById("valorPedidoEdicao").value);
-    const total = valorPedido + valorFrete; // Cálculo correto do total do pedido
+    const total = valorPedido + valorFrete;
 
-    document.getElementById("totalEdicao").value = formatarMoeda(total); // Atualiza o total com o cálculo correto
+    document.getElementById("totalEdicao").value = formatarMoeda(total);
     atualizarRestanteEdicao();
 }
-
 
 function atualizarRestanteEdicao() {
     const total = converterMoedaParaNumero(document.getElementById("totalEdicao").value);
     const entrada = converterMoedaParaNumero(document.getElementById("entradaEdicao").value);
-    // Removido custoMaoDeObra do cálculo para corresponder à solicitação do usuário
-    // const custoMaoDeObra = converterMoedaParaNumero(document.getElementById("custoMaoDeObraEdicao").value);
-    // const restante = total - entrada - custoMaoDeObra;
-    const restante = total - entrada; // Cálculo simplificado: Restante = Total - Entrada
+    const restante = total - entrada;
 
     document.getElementById("restanteEdicao").value = formatarMoeda(restante);
 }
@@ -314,23 +290,20 @@ function atualizarRestanteEdicao() {
 function gerarNumeroFormatado(numero) {
     return numero.toString().padStart(4, '0') + '/' + anoAtual;
 }
+/* ==== FIM SEÇÃO - FUNÇÕES AUXILIARES ==== */
 
-/* ==== FIM DA SEÇÃO - FUNÇÕES AUXILIARES ==== */
-
-/* ==== INÍCIO SEÇÃO - SALVAR DADOS NO FIREBASE (COM VERIFICAÇÃO DE AUTENTICAÇÃO) ==== */
+/* ==== INÍCIO SEÇÃO - SALVAR DADOS NO FIREBASE ==== */
 async function salvarDados(dados, tipo) {
     if (!usuarioAtual) {
         alert("Você precisa estar autenticado para salvar dados.");
-        return; // Não salva se não estiver autenticado
+        return;
     }
     try {
         if (dados.id) {
             const docRef = doc(orcamentosPedidosRef, dados.id);
             await setDoc(docRef, dados, { merge: true });
-            console.log(`Dados ${tipo} atualizados no Firebase com ID:`, dados.id);
         } else {
             const docRef = await addDoc(orcamentosPedidosRef, { ...dados, tipo });
-            console.log(`Novos dados ${tipo} salvos no Firebase com ID:`, docRef.id);
             dados.id = docRef.id;
         }
     } catch (error) {
@@ -359,7 +332,7 @@ async function gerarOrcamento() {
         tema: document.getElementById("tema").value,
         cidade: document.getElementById("cidade").value,
         telefone: document.getElementById("telefone").value,
-        email: document.getElementById("clienteEmail").value, // Alterado para clienteEmail
+        email: document.getElementById("clienteEmail").value,
         cores: document.getElementById("cores").value,
         produtos: [],
         pagamento: Array.from(document.querySelectorAll('input[name="pagamento"]:checked')).map(el => el.value),
@@ -369,7 +342,7 @@ async function gerarOrcamento() {
         observacoes: document.getElementById("observacoes").value,
         pedidoGerado: false,
         numeroPedido: null,
-        tipo: 'orcamento' // Definição do tipo aqui
+        tipo: 'orcamento'
     };
 
     const produtos = document.querySelectorAll("#tabelaProdutos tbody tr");
@@ -382,26 +355,24 @@ async function gerarOrcamento() {
         });
     });
 
-    await salvarDados(orcamento, 'orcamento'); // Salva no Firebase
+    await salvarDados(orcamento, 'orcamento');
     numeroOrcamento++;
-    orcamentos.push(orcamento); //Adiciona para renderizar
+    orcamentos.push(orcamento);
 
     document.getElementById("orcamento").reset();
     limparCamposMoeda();
     document.querySelector("#tabelaProdutos tbody").innerHTML = "";
 
     alert("Orçamento gerado com sucesso!");
-     mostrarPagina('orcamentos-gerados'); //Adicionado
-     mostrarOrcamentosGerados(1);          //Adicionado
-     exibirOrcamentoEmHTML(orcamento); // Chamar a função para exibir o orçamento aqui
+    mostrarPagina('orcamentos-gerados');
+    mostrarOrcamentosGerados(1);
+    exibirOrcamentoEmHTML(orcamento);
 }
 
 function exibirOrcamentoEmHTML(orcamento) {
-    console.log("Função exibirOrcamentoEmHTML chamada com orçamento:", orcamento);
     const janelaOrcamento = window.open('orcamento.html', '_blank');
 
     janelaOrcamento.addEventListener('load', () => {
-        console.log("Página orcamento.html carregada.");
         const conteudoOrcamento = janelaOrcamento.document.getElementById("conteudo-orcamento");
 
         if (!conteudoOrcamento) {
@@ -411,7 +382,6 @@ function exibirOrcamentoEmHTML(orcamento) {
 
         const dataOrcamentoFormatada = orcamento.dataOrcamento.split('-').reverse().join('/');
         const dataValidadeFormatada = orcamento.dataValidade.split('-').reverse().join('/');
-
         const pagamentoFormatado = orcamento.pagamento.map(pag => {
             if (pag === 'pix') return 'PIX';
             if (pag === 'dinheiro') return 'Dinheiro';
@@ -471,10 +441,8 @@ function exibirOrcamentoEmHTML(orcamento) {
         `;
 
         conteudoOrcamento.innerHTML = html;
-        console.log("Conteúdo do orçamento inserido em orcamento.html");
     });
 }
-
 /* ==== FIM SEÇÃO - GERAÇÃO DE ORÇAMENTO ==== */
 
 /* ==== INÍCIO SEÇÃO - ORÇAMENTOS GERADOS (PAGINAÇÃO) ==== */
@@ -519,7 +487,6 @@ function mostrarOrcamentosGerados(novaPagina = 1) {
         }
     });
 
-    // Adicionar event listeners para botões dinâmicos (depois de inserir no DOM)
     const btnsEditarOrcamento = document.querySelectorAll('.btnEditarOrcamento');
     btnsEditarOrcamento.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -536,16 +503,13 @@ function mostrarOrcamentosGerados(novaPagina = 1) {
         });
     });
 
-    // Novos event listeners para os botões "Visualizar"
     const btnsVisualizarOrcamento = document.querySelectorAll('.btnVisualizarOrcamento');
     btnsVisualizarOrcamento.forEach(btn => {
         btn.addEventListener('click', function() {
-            // Encontra o orçamento correspondente na lista `orcamentos` (você pode precisar de um dataset-id se não estiver funcionando corretamente)
-            const numeroOrcamentoBotao = this.closest('tr').cells[0].textContent; // Pega o número da linha
+            const numeroOrcamentoBotao = this.closest('tr').cells[0].textContent;
             const orcamentoParaVisualizar = orcamentos.find(orcamento => orcamento.numero === numeroOrcamentoBotao);
             if (orcamentoParaVisualizar) {
                 exibirOrcamentoEmHTML(orcamentoParaVisualizar);
-                console.log('Visualizar Orçamento:', orcamentoParaVisualizar);
             } else {
                 console.error("Orçamento não encontrado para visualização.");
             }
@@ -562,18 +526,8 @@ function atualizarBotoesPaginacaoOrcamentos(totalItens) {
     const currentPageSpan = document.getElementById('currentPageOrcamentos');
 
     currentPageSpan.textContent = `Página ${paginaAtualOrcamentos}`;
-
-    if (paginaAtualOrcamentos <= 1) {
-        prevButton.disabled = true;
-    } else {
-        prevButton.disabled = false;
-    }
-
-    if (paginaAtualOrcamentos >= totalPaginas) {
-        nextButton.disabled = true;
-    } else {
-        nextButton.disabled = false;
-    }
+    prevButton.disabled = paginaAtualOrcamentos <= 1;
+    nextButton.disabled = paginaAtualOrcamentos >= totalPaginas;
 }
 
 function nextPageOrcamentos() {
@@ -585,14 +539,14 @@ function previousPageOrcamentos() {
 }
 
 function filtrarOrcamentos() {
-    filtroAtivoOrcamentos = true; // Define que o filtro está ativo
+    filtroAtivoOrcamentos = true;
     const dataInicio = document.getElementById('filtroDataInicioOrcamento').value;
     const dataFim = document.getElementById('filtroDataFimOrcamento').value;
     const numeroOrcamentoFiltro = parseInt(document.getElementById('filtroNumeroOrcamento').value);
     const anoOrcamentoFiltro = parseInt(document.getElementById('filtroAnoOrcamento').value);
     const clienteOrcamentoFiltro = document.getElementById('filtroClienteOrcamento').value.toLowerCase();
 
-    orcamentosFiltradosPaginados = orcamentos.filter(orcamento => { // Usa orcamentos aqui
+    orcamentosFiltradosPaginados = orcamentos.filter(orcamento => {
         const [numOrcamento, anoOrcamento] = orcamento.numero.split('/');
         const dataOrcamento = new Date(orcamento.dataOrcamento);
         const nomeCliente = orcamento.cliente.toLowerCase();
@@ -604,15 +558,14 @@ function filtrarOrcamentos() {
                nomeCliente.includes(clienteOrcamentoFiltro);
     });
 
-    mostrarOrcamentosGerados(1); // Resetar para a página 1 após filtrar
+    mostrarOrcamentosGerados(1);
 }
 
 function atualizarListaOrcamentos(orcamentosFiltrados) {
-    orcamentosFiltradosPaginados = orcamentosFiltrados; // Atualiza a lista filtrada
-    mostrarOrcamentosGerados(1); // Resetar para a página 1 após atualizar lista filtrada
+    orcamentosFiltradosPaginados = orcamentosFiltrados;
+    mostrarOrcamentosGerados(1);
 }
 /* ==== FIM SEÇÃO - ORÇAMENTOS GERADOS (PAGINAÇÃO) ==== */
-
 
 /* ==== INÍCIO SEÇÃO - PEDIDOS REALIZADOS (PAGINAÇÃO) ==== */
 function mostrarPedidosRealizados(novaPagina = 1) {
@@ -640,7 +593,6 @@ function mostrarPedidosRealizados(novaPagina = 1) {
         cellAcoes.innerHTML = `<button type="button" class="btnEditarPedido" data-pedido-id="${pedido.id}">Editar</button>`;
     });
 
-    // Adicionar event listeners para botões dinâmicos (depois de inserir no DOM)
     const btnsEditarPedido = document.querySelectorAll('.btnEditarPedido');
     btnsEditarPedido.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -659,18 +611,8 @@ function atualizarBotoesPaginacaoPedidos(totalItens) {
     const currentPageSpan = document.getElementById('currentPagePedidos');
 
     currentPageSpan.textContent = `Página ${paginaAtualPedidos}`;
-
-    if (paginaAtualPedidos <= 1) {
-        prevButton.disabled = true;
-    } else {
-        prevButton.disabled = false;
-    }
-
-    if (paginaAtualPedidos >= totalPaginas) {
-        nextButton.disabled = true;
-    } else {
-        nextButton.disabled = false;
-    }
+    prevButton.disabled = paginaAtualPedidos <= 1;
+    nextButton.disabled = paginaAtualPedidos >= totalPaginas;
 }
 
 function nextPagePedidos() {
@@ -681,16 +623,15 @@ function previousPagePedidos() {
     mostrarPedidosRealizados(paginaAtualPedidos - 1);
 }
 
-
 function filtrarPedidos() {
-    filtroAtivoPedidos = true; // Define que o filtro está ativo
+    filtroAtivoPedidos = true;
     const dataInicio = document.getElementById('filtroDataInicioPedido').value;
     const dataFim = document.getElementById('filtroDataFimPedido').value;
     const numeroPedidoFiltro = parseInt(document.getElementById('filtroNumeroPedido').value);
     const anoPedidoFiltro = parseInt(document.getElementById('filtroAnoPedido').value);
     const clientePedidoFiltro = document.getElementById('filtroClientePedido').value.toLowerCase();
 
-    pedidosFiltradosPaginados = pedidos.filter(pedido => { // Usa pedidos aqui
+    pedidosFiltradosPaginados = pedidos.filter(pedido => {
         const [numPedido, anoPedido] = pedido.numero.split('/');
         const dataPedido = new Date(pedido.dataPedido);
         const nomeCliente = pedido.cliente.toLowerCase();
@@ -702,12 +643,12 @@ function filtrarPedidos() {
                nomeCliente.includes(clientePedidoFiltro);
     });
 
-    mostrarPedidosRealizados(1); // Resetar para a página 1 após filtrar
+    mostrarPedidosRealizados(1);
 }
 
 function atualizarListaPedidos(pedidosFiltrados) {
-    pedidosFiltradosPaginados = pedidosFiltrados; // Atualiza a lista filtrada
-    mostrarPedidosRealizados(1);  // Resetar para a página 1 após atualizar lista filtrada
+    pedidosFiltradosPaginados = pedidosFiltrados;
+    mostrarPedidosRealizados(1);
 }
 /* ==== FIM SEÇÃO - PEDIDOS REALIZADOS (PAGINAÇÃO) ==== */
 
@@ -791,20 +732,18 @@ function gerarRelatorio(pedidosFiltrados) {
         </table>
     `;
 
-
     document.getElementById('relatorio-conteudo').innerHTML = relatorioHTML;
 }
 
-
 function gerarRelatorioXLSX() {
-    const relatorioTable = document.querySelector('#relatorio-conteudo'); // Seleciona o container do relatório
-    if (!relatorioTable || !relatorioTable.innerHTML.includes('<table')) { // Verifica se a tabela está dentro do container
+    const relatorioTable = document.querySelector('#relatorio-conteudo');
+    if (!relatorioTable || !relatorioTable.innerHTML.includes('<table')) {
         alert('Erro: Tabela de relatório não encontrada. Gere o relatório primeiro.');
         return;
     }
 
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.table_to_sheet(relatorioTable.querySelector('table')); // Seleciona a tabela dentro do container
+    const ws = XLSX.utils.table_to_sheet(relatorioTable.querySelector('table'));
     XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
     XLSX.writeFile(wb, "relatorio_pedidos.xlsx");
 }
@@ -819,85 +758,54 @@ function mostrarPagina(idPagina) {
 
     document.getElementById(idPagina).style.display = 'block';
 }
-
 /* ==== FIM SEÇÃO - FUNÇÕES DE CONTROLE DE PÁGINA ==== */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // ==== EVENT LISTENERS PARA OS MENUS ====
-    const menuLinks = document.querySelectorAll('nav ul li a[data-pagina]'); // Seleciona links do menu com data-pagina
+    // ==== EVENT LISTENERS MENUS ====
+    const menuLinks = document.querySelectorAll('nav ul li a[data-pagina]');
     menuLinks.forEach(link => {
         link.addEventListener('click', (event) => {
-            event.preventDefault(); // Evita o comportamento padrão do link (ir para # e recarregar a página)
-            const paginaId = link.dataset.pagina; // Pega o ID da página do atributo data-pagina
-            mostrarPagina(paginaId); // Chama sua função mostrarPagina
-            // Funções adicionais a serem chamadas ao clicar em certos menus (se necessário)
+            event.preventDefault();
+            const paginaId = link.dataset.pagina;
+            mostrarPagina(paginaId);
             if (paginaId === 'orcamentos-gerados') mostrarOrcamentosGerados(1);
             if (paginaId === 'lista-pedidos') mostrarPedidosRealizados(1);
         });
     });
 
-    // ==== EVENT LISTENERS PARA BOTÕES DOS FORMULÁRIOS ====
-    // Botão "Adicionar Produto" (Formulário de Orçamento)
+    // ==== EVENT LISTENERS BOTÕES FORMULÁRIOS ====
     const btnAdicionarProdutoOrcamento = document.querySelector('#btnAddProdutoOrcamento');
-    if (btnAdicionarProdutoOrcamento) { // Verifica se o botão existe no DOM
-        btnAdicionarProdutoOrcamento.addEventListener('click', adicionarProduto); // Associa a função adicionarProduto ao evento de clique
-    }
+    if (btnAdicionarProdutoOrcamento) btnAdicionarProdutoOrcamento.addEventListener('click', adicionarProduto);
 
-    // Botão "Adicionar Produto" (Formulário de Edição de Pedido)
     const btnAdicionarProdutoEdicaoForm = document.querySelector('#btnAddProdutoEdicao');
-    if (btnAdicionarProdutoEdicaoForm) {
-        btnAdicionarProdutoEdicaoForm.addEventListener('click', adicionarProdutoEdicao);
-    }
+    if (btnAdicionarProdutoEdicaoForm) btnAdicionarProdutoEdicaoForm.addEventListener('click', adicionarProdutoEdicao);
 
-    // Botão "Gerar Orçamento"
     const btnGerarOrcamentoForm = document.querySelector('#btnGerarOrcamento');
-    if (btnGerarOrcamentoForm) {
-        btnGerarOrcamentoForm.addEventListener('click', gerarOrcamento);
-    }
+    if (btnGerarOrcamentoForm) btnGerarOrcamentoForm.addEventListener('click', gerarOrcamento);
 
-    // Botão "Atualizar Orçamento"
     const btnAtualizarOrcamentoForm = document.querySelector('#btnAtualizarOrcamento');
-    if (btnAtualizarOrcamentoForm) {
-        btnAtualizarOrcamentoForm.addEventListener('click', atualizarOrcamento);
-    }
+    if (btnAtualizarOrcamentoForm) btnAtualizarOrcamentoForm.addEventListener('click', atualizarOrcamento);
 
-    // Botão "Salvar Alterações" (Formulário de Edição de Pedido)
     const btnSalvarAlteracoesPedido = document.querySelector('#btnSalvarPedidoEdicao');
-    if (btnSalvarAlteracoesPedido) {
-        btnSalvarAlteracoesPedido.addEventListener('click', atualizarPedido);
-    }
+    if (btnSalvarAlteracoesPedido) btnSalvarAlteracoesPedido.addEventListener('click', atualizarPedido);
 
-    // Botões "Filtrar" (Orçamentos Gerados)
     const btnFiltrarOrcamentos = document.querySelector('#orcamentos-gerados .filtro-data button');
-    if (btnFiltrarOrcamentos) {
-        btnFiltrarOrcamentos.addEventListener('click', filtrarOrcamentos);
-    }
+    if (btnFiltrarOrcamentos) btnFiltrarOrcamentos.addEventListener('click', filtrarOrcamentos);
 
-    // Botões "Filtrar" (Pedidos Realizados)
     const btnFiltrarPedidos = document.querySelector('#lista-pedidos .filtro-data button');
-    if (btnFiltrarPedidos) {
-        btnFiltrarPedidos.addEventListener('click', filtrarPedidos);
-    }
+    if (btnFiltrarPedidos) btnFiltrarPedidos.addEventListener('click', filtrarPedidos);
 
-     // Botões "Gerar Relatório" (Relatório)
     const btnGerarRelatorio = document.querySelector('#relatorio .filtro-data button');
-    if (btnGerarRelatorio) {
-        btnGerarRelatorio.addEventListener('click', filtrarPedidosRelatorio); // Use filtrarPedidosRelatorio para o relatório
-    }
+    if (btnGerarRelatorio) btnGerarRelatorio.addEventListener('click', filtrarPedidosRelatorio);
 
-    // Botão "Exportar Relatório (XLSX)" (Relatório)
     const btnExportarRelatorioXLSX = document.querySelector('#relatorio button[onclick="gerarRelatorioXLSX()"]');
-    if (btnExportarRelatorioXLSX) {
-        btnExportarRelatorioXLSX.addEventListener('click', gerarRelatorioXLSX);
-    }
+    if (btnExportarRelatorioXLSX) btnExportarRelatorioXLSX.addEventListener('click', gerarRelatorioXLSX);
 
     // ==== RECUPERAÇÃO DE SENHA ====
     const btnForgotPassword = document.getElementById('btnForgotPassword');
-    const passwordResetMessage = document.getElementById('passwordResetMessage');
-
     if (btnForgotPassword) {
         btnForgotPassword.addEventListener('click', async () => {
-            const email = emailInput.value; // Usa o e-mail inserido no campo de e-mail de login
+            const email = emailInput.value;
             if (!email) {
                 alert("Por favor, insira seu email para redefinir a senha.");
                 return;
@@ -906,121 +814,94 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await sendPasswordResetEmail(auth, email);
                 passwordResetMessage.textContent = "Email de redefinição de senha enviado. Verifique sua caixa de entrada (e spam).";
-                passwordResetMessage.style.display = "block"; // Mostra mensagem de sucesso
-                // Oculta a mensagem após alguns segundos (opcional)
+                passwordResetMessage.style.display = "block";
                 setTimeout(() => {
                     passwordResetMessage.style.display = "none";
-                }, 5000); // Oculta após 5 segundos
+                }, 5000);
             } catch (error) {
                 console.error("Erro ao enviar email de redefinição:", error);
                 alert("Erro ao redefinir a senha. Verifique o console para detalhes.");
                 passwordResetMessage.textContent = "Erro ao enviar email de redefinição. Tente novamente.";
-                passwordResetMessage.style.display = "block"; // Mostra mensagem de erro
+                passwordResetMessage.style.display = "block";
             }
         });
     }
 
-    // ==== ADICIONANDO EVENT LISTENERS PROGRAMATICAMENTE ====
-
-    // Event listeners para inputs de quantidade de produtos (tabela de orçamento)
-    document.querySelectorAll('#tabelaProdutos tbody').forEach(tbody => {
-        tbody.addEventListener('change', function(event) {
-            if (event.target.classList.contains('produto-quantidade')) {
-                atualizarTotais();
-            }
-        });
+    // ==== DELEGAÇÃO DE EVENTOS PARA TABELAS (CORREÇÃO PRINCIPAL) ====
+    // Event delegation para inputs de quantidade e valor unitário na tabela de ORÇAMENTO
+    document.querySelector('#tabelaProdutos tbody').addEventListener('change', function(event) {
+        if (event.target.classList.contains('produto-quantidade')) {
+            atualizarTotais();
+        }
+    });
+    document.querySelector('#tabelaProdutos tbody').addEventListener('input', function(event) {
+        if (event.target.classList.contains('produto-valor-unit')) {
+            formatarEntradaMoeda(event.target);
+            atualizarTotais();
+        }
+    });
+     document.querySelector('#tabelaProdutos tbody').addEventListener('blur', function(event) {
+        if (event.target.classList.contains('produto-valor-unit')) {
+            atualizarTotais();
+        }
     });
 
-    // Event listeners para inputs de valor unitário de produtos (tabela de orçamento)
-    document.querySelectorAll('#tabelaProdutos tbody').forEach(tbody => {
-        tbody.addEventListener('input', function(event) {
-            if (event.target.classList.contains('produto-valor-unit')) {
-                formatarEntradaMoeda(event.target);
-                atualizarTotais(); // CHAME A FUNÇÃO AQUI TAMBÉM NO EVENTO 'input'
-            }
-        });
-        tbody.addEventListener('blur', function(event) {
-            if (event.target.classList.contains('produto-valor-unit')) {
-                atualizarTotais();
-            }
-        });
-    });
-
-    // Event listeners para o input de valor do frete (formulário de orçamento)
+    // Event listeners para o input de valor do frete no formulário de orçamento
     const valorFreteInput = document.getElementById('valorFrete');
     if (valorFreteInput) {
-        valorFreteInput.addEventListener('input', function() {
-            formatarEntradaMoeda(this);
-        });
+        valorFreteInput.addEventListener('input', formatarEntradaMoeda);
         valorFreteInput.addEventListener('blur', atualizarTotais);
     }
 
-     // Event listeners para inputs de quantidade de produtos (tabela de edição de pedido)
-    document.querySelectorAll('#tabelaProdutosEdicao tbody').forEach(tbody => {
-        tbody.addEventListener('change', function(event) {
-            if (event.target.classList.contains('produto-quantidade')) {
-                atualizarTotaisEdicao();
-            }
-        });
+    // Event delegation para inputs de quantidade e valor unitário na tabela de EDIÇÃO DE PEDIDO
+    document.querySelector('#tabelaProdutosEdicao tbody').addEventListener('change', function(event) {
+        if (event.target.classList.contains('produto-quantidade')) {
+            atualizarTotaisEdicao();
+        }
+    });
+    document.querySelector('#tabelaProdutosEdicao tbody').addEventListener('input', function(event) {
+        if (event.target.classList.contains('produto-valor-unit')) {
+            formatarEntradaMoeda(event.target);
+            atualizarTotaisEdicao();
+        }
+    });
+     document.querySelector('#tabelaProdutosEdicao tbody').addEventListener('blur', function(event) {
+        if (event.target.classList.contains('produto-valor-unit')) {
+            atualizarTotaisEdicao();
+        }
     });
 
-    // Event listeners para inputs de valor unitário de produtos (tabela de edição de pedido)
-    document.querySelectorAll('#tabelaProdutosEdicao tbody').forEach(tbody => {
-        tbody.addEventListener('input', function(event) {
-            if (event.target.classList.contains('produto-valor-unit')) {
-                formatarEntradaMoeda(event.target);
-                atualizarTotaisEdicao(); // CHAME A FUNÇÃO AQUI TAMBÉM NO EVENTO 'input'
-            }
-        });
-        tbody.addEventListener('blur', function(event) {
-            if (event.target.classList.contains('produto-valor-unit')) {
-                atualizarTotaisEdicao();
-            }
-        });
-    });
-
-    // Event listeners para o input de valor do frete (formulário de edição de pedido)
+    // Event listeners para campos de valor no formulário de edição de pedido
     const valorFreteEdicaoInput = document.getElementById('valorFreteEdicao');
     if (valorFreteEdicaoInput) {
-        valorFreteEdicaoInput.addEventListener('input', function() {
-            formatarEntradaMoeda(this);
-        });
+        valorFreteEdicaoInput.addEventListener('input', formatarEntradaMoeda);
         valorFreteEdicaoInput.addEventListener('blur', atualizarTotaisEdicao);
     }
 
-     // Event listeners para o input de valor do pedido (formulário de edição de pedido)
     const valorPedidoEdicaoInput = document.getElementById('valorPedidoEdicao');
     if (valorPedidoEdicaoInput) {
-        valorPedidoEdicaoInput.addEventListener('input', function() {
-            formatarEntradaMoeda(this);
-        });
+        valorPedidoEdicaoInput.addEventListener('input', formatarEntradaMoeda);
         valorPedidoEdicaoInput.addEventListener('blur', atualizarTotaisEdicao);
     }
 
-    // Event listener para o input de Entrada no formulário de edição de pedido
     const entradaEdicaoInput = document.getElementById('entradaEdicao');
     if (entradaEdicaoInput) {
         entradaEdicaoInput.addEventListener('input', function() {
             formatarEntradaMoeda(this);
-            atualizarRestanteEdicao(); // Atualiza o restante ao digitar a entrada
+            atualizarRestanteEdicao();
         });
-        entradaEdicaoInput.addEventListener('blur', atualizarRestanteEdicao); // Garante que atualiza no blur também
+        entradaEdicaoInput.addEventListener('blur', atualizarRestanteEdicao);
     }
+    // ==== FIM - DELEGAÇÃO DE EVENTOS PARA TABELAS ====
 
-    // Event listeners para os botões de paginação dos Orçamentos
+    // ==== EVENT LISTENERS PAGINAÇÃO ====
     document.getElementById('nextPageOrcamentos').addEventListener('click', nextPageOrcamentos);
     document.getElementById('prevPageOrcamentos').addEventListener('click', previousPageOrcamentos);
-
-    // Event listeners para os botões de paginação dos Pedidos
     document.getElementById('nextPagePedidos').addEventListener('click', nextPagePedidos);
     document.getElementById('prevPagePedidos').addEventListener('click', previousPagePedidos);
 
-    // ==== FIM - ADICIONANDO EVENT LISTENERS PROGRAMATICAMENTE ====
-
-    // Inicializar campos moeda para 'R$ 0,00' no carregamento da página
+    // Inicializar campos moeda e exibir a primeira página das listas
     limparCamposMoeda();
-
-    // Inicializa a exibição na primeira página ao carregar a página
     mostrarOrcamentosGerados(1);
     mostrarPedidosRealizados(1);
 });
