@@ -34,20 +34,20 @@
         <!-- ==== FIM SEÇÃO - CABEÇALHO ==== -->
 
         <!-- Seção de Autenticação (Inicialmente oculta) -->
-       <div id="authSection" style="display: block; text-align: center; margin-bottom: 20px;">
-    <input type="email" id="email" placeholder="Email" style="margin-bottom: 10px;">
-    <input type="password" id="password" placeholder="Senha" style="margin-bottom: 10px;">
-    <div>
-        <button id="btnRegister">Registrar</button>
-        <button id="btnLogin">Entrar</button>
-        <button id="btnLogout" style="display:none;">Sair</button>
-        <span id="btnForgotPasswordContainer" style="margin-left: 10px;"> <!-- Container para o link "Esqueci minha senha?" -->
-            <button id="btnForgotPassword">Esqueci minha senha?</button>
-        </span>
-    </div>
-    <p id="authStatus">Nenhum usuário autenticado</p>
-    <div id="passwordResetMessage" style="display:none; color: green; margin-top: 10px;"></div>
-</div>
+        <div id="authSection" style="display: block; text-align: center; margin-bottom: 20px;">
+            <input type="email" id="email" placeholder="Email" style="margin-bottom: 10px;">
+            <input type="password" id="password" placeholder="Senha" style="margin-bottom: 10px;">
+            <div>
+                <button id="btnRegister">Registrar</button>
+                <button id="btnLogin">Entrar</button>
+                <button id="btnLogout" style="display:none;">Sair</button>
+                <span id="btnForgotPasswordContainer" style="margin-left: 10px;">
+                    <button id="btnForgotPassword">Esqueci minha senha?</button>
+                </span>
+            </div>
+            <p id="authStatus">Nenhum usuário autenticado</p>
+            <div id="passwordResetMessage" style="display:none; color: green; margin-top: 10px;"></div>
+        </div>
 
       <!-- ==== Adicionado após Seção de Autenticação ==== -->
         <div id="appContent" style="display: block;">
@@ -93,8 +93,8 @@
                         <input type="text" id="telefone" name="telefone" placeholder="Número de Telefone ou Celular">
                     </div>
                     <div class="form-group">
-                        <label for="email">E-mail:</label>
-                        <input type="email" id="email" name="email" placeholder="Endereço de E-mail">
+                        <label for="clienteEmail">E-mail:</label>
+                        <input type="email" id="clienteEmail" name="email" placeholder="Endereço de E-mail">
                     </div>
                 </div>
                 <div class="form-row">
@@ -364,7 +364,7 @@
 
         <!-- ==== REMOVIDA A SEÇÃO - IMPORTAR EXPORTAR ==== -->
 
-        <!-- ==== INÍCIO SEÇÃO - VISUALIZAR ORÇAMENTO ==== -->
+                <!-- ==== INÍCIO SEÇÃO - VISUALIZAR ORÇAMENTO ==== -->
         <section id="visualizar-orcamento" class="pagina" style="display:none;">
             <div class="header-orcamento">
                 <img src="./logo_perola_rara.png" alt="Logo Pérola Rara" id="logo-orcamento">
