@@ -237,6 +237,81 @@ button:hover {
 
 /* ==== FIM SEÇÃO - BOTÕES ==== */
 
+/* ==== INÍCIO SEÇÃO - ESTILOS DA SEÇÃO DE AUTENTICAÇÃO (ADICIONADO) ==== */
+#authSection {
+    background-color: #e6f7ff; /* Azul bem claro para o fundo do retângulo */
+    padding: 20px;
+    border-radius: 15px; /* Bordas arredondadas para o retângulo */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra leve para destacar */
+    margin-bottom: 20px; /* Espaçamento abaixo da seção de autenticação */
+    display: inline-block; /* Para que o fundo se ajuste ao conteúdo */
+    text-align: center; /* Centralizar o texto interno */
+}
+
+#authSection input[type="email"],
+#authSection input[type="password"] {
+    background-color: #f8f8f8; /* Tom mais claro para os inputs dentro da seção */
+    color: #333; /* Cor do texto para melhor leitura */
+    border: 1px solid #ddd; /* Borda mais suave */
+    border-radius: 15px; /* Bordas arredondadas para os inputs */
+    padding: 8px 12px; /* Padding interno um pouco menor */
+    margin-bottom: 8px; /* Menos espaço abaixo dos inputs */
+    width: calc(100% - 26px); /* Ajuste de largura considerando o padding e borda */
+    font-size: 14px; /* Fonte um pouco menor */
+}
+
+#authSection div { /* Estilo para a div que contém os botões de ação */
+    display: flex;          /* Usar flexbox para alinhar os botões horizontalmente */
+    justify-content: center; /* Centralizar os botões horizontalmente */
+    align-items: center;     /* Alinhar verticalmente ao centro (se necessário) */
+}
+
+#authSection button {
+    background-color: #a8d5e3; /* Tom de azul mais suave para os botões */
+    color: #fff;
+    padding: 8px 15px; /* Padding menor para botões menores */
+    border-radius: 15px; /* Bordas arredondadas */
+    font-size: 14px; /* Fonte menor para os botões */
+    margin: 4px; /* Espaçamento menor entre os botões */
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+#authSection button:hover {
+    background-color: #7cb3c2; /* Tom de azul um pouco mais escuro no hover */
+}
+
+#authSection #authStatus,
+#authSection #passwordResetMessage {
+    font-size: 0.9em; /* Fonte menor para o status e mensagens */
+    margin-top: 10px;
+    color: #555; /* Cor do texto um pouco mais suave */
+}
+
+#authSection #btnForgotPasswordContainer { /* Estilo para o container do link "Esqueci minha senha?" */
+    margin-left: 10px;      /* Espaçamento à esquerda para separar dos outros botões */
+}
+
+#authSection #btnForgotPassword {
+    background: none;       /* Fundo transparente */
+    color: #7aa2a9;         /* Cor do texto da paleta */
+    border: none;           /* Sem borda */
+    padding: 8px 0;         /* Ajuste no padding vertical */
+    font-size: 14px;        /* Tamanho da fonte */
+    cursor: pointer;        /* Cursor de pointer */
+    text-decoration: none;  /* Sem sublinhado */
+    margin: 0;              /* Remove margens desnecessárias */
+    align-self: center;     /* Alinhar verticalmente ao centro dentro do flex container */
+}
+
+#authSection #btnForgotPassword:hover {
+    text-decoration: underline; /* Sublinhado no hover */
+    color: #5a8289;         /* Cor do texto no hover */
+    background-color: transparent; /* Fundo transparente no hover */
+}
+/* ==== FIM SEÇÃO - ESTILOS DA SEÇÃO DE AUTENTICAÇÃO ==== */
+
 /* ==== INÍCIO SEÇÃO - SEÇÃO RELATÓRIO ==== */
 .filtro-data {
     margin-bottom: 20px;
