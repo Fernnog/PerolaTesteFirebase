@@ -403,3 +403,55 @@ nav ul li a[onclick="limparPagina()"]:hover {
     font-weight: bold; /* Opcional: para destacar ainda mais */
 }
 /* ==== FIM SEÇÃO - ESTILOS ADICIONADOS PARA CAMPOS CALCULADOS ==== */
+
+/* ==== INÍCIO SEÇÃO - ESTILOS DE PAGINAÇÃO (ADICIONADO) ==== */
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.pagination-list {
+    display: inline-block;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.page-item {
+    display: inline-block;
+    margin: 0 5px;
+}
+
+.page-link {
+    display: block;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #7aa2a9; /* Cor do texto da paleta */
+    background-color: #fff; /* Fundo branco */
+    border: 1px solid #ccc; /* Borda cinza clara */
+    border-radius: 20px; /* Bordas arredondadas para combinar com botões */
+    font-size: 14px; /* Tamanho da fonte */
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Transições suaves */
+}
+
+.page-link:hover {
+    background-color: #e8d7d4; /* Rosa claro no hover, da paleta */
+    color: #333; /* Escurece o texto no hover */
+    border-color: #bbb; /* Borda um pouco mais escura no hover */
+}
+
+.page-item.active .page-link {
+    background-color: #7aa2a9; /* Cor de fundo ativa da paleta */
+    color: white; /* Texto branco para contraste na página ativa */
+    border-color: #7aa2a9; /* Cor da borda ativa consistente */
+}
+
+.page-item.disabled .page-link {
+    color: #aaa; /* Cor de texto desabilitado */
+    pointer-events: none; /* Desabilita interações */
+    background-color: #eee; /* Fundo mais claro para indicar desabilitado */
+    border-color: #ddd; /* Borda desabilitada */
+}
+/* ==== FIM SEÇÃO - ESTILOS DE PAGINAÇÃO ==== */
