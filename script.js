@@ -296,8 +296,10 @@ function atualizarTotaisEdicao() {
 function atualizarRestanteEdicao() {
     const total = converterMoedaParaNumero(document.getElementById("totalEdicao").value);
     const entrada = converterMoedaParaNumero(document.getElementById("entradaEdicao").value);
-    const custoMaoDeObra = converterMoedaParaNumero(document.getElementById("custoMaoDeObraEdicao").value);
-    const restante = total - entrada - custoMaoDeObra;
+    // Removido custoMaoDeObra do cálculo para corresponder à solicitação do usuário
+    // const custoMaoDeObra = converterMoedaParaNumero(document.getElementById("custoMaoDeObraEdicao").value);
+    // const restante = total - entrada - custoMaoDeObra;
+    const restante = total - entrada; // Cálculo simplificado: Restante = Total - Entrada
 
     document.getElementById("restanteEdicao").value = formatarMoeda(restante);
 }
@@ -1273,6 +1275,16 @@ document.addEventListener('DOMContentLoaded', () => {
             formatarEntradaMoeda(this);
         });
         valorPedidoEdicaoInput.addEventListener('blur', atualizarTotaisEdicao);
+    }
+
+    // Event listener para o input de Entrada no formulário de edição de pedido
+    const entradaEdicaoInput = document.getElementById('entradaEdicao');
+    if (entradaEdicaoInput) {
+        entradaEdicaoInput.addEventListener('input', function() {
+            formatarEntradaMoeda(this);
+            atualizarRestanteEdicao(); // Atualiza o restante ao digitar a entrada
+        });
+        entradaEdicaoInput.addEventListener('blur', atualizarRestanteEdicao); // Garante que atualiza no blur também
     }
 
     // ==== FIM - ADICIONANDO EVENT LISTENERS PROGRAMATICAMENTE ====
