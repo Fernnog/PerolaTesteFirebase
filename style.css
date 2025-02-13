@@ -403,3 +403,35 @@ nav ul li a[onclick="limparPagina()"]:hover {
     font-weight: bold; /* Opcional: para destacar ainda mais */
 }
 /* ==== FIM SEÇÃO - ESTILOS ADICIONADOS PARA CAMPOS CALCULADOS ==== */
+
+/* ==== INÍCIO SEÇÃO - ESTILOS DE PAGINAÇÃO ==== */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.pagination button {
+    padding: 8px 12px;
+    margin: 0 5px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    color: #333;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.pagination button:disabled {
+    background-color: #eee;
+    color: #999;
+    cursor: default;
+}
+
+.pagination span {
+    margin: 0 10px;
+    font-size: 1em;
+    color: #555;
+}
+/* ==== FIM SEÇÃO - ESTILOS DE PAGINAÇÃO ==== */
