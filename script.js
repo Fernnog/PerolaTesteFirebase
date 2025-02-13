@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
 import { getFirestore, collection, addDoc, getDocs, doc, setDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDG1NYs6CM6TDfGAPXSz1ho8_-NWs28zSg", // SUA API KEY
@@ -41,6 +41,8 @@ const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const authSection = document.getElementById('authSection');
 const appContent = document.getElementById('appContent'); //Para mostrar Sections
+const btnForgotPassword = document.getElementById('btnForgotPassword');
+const passwordResetMessage = document.getElementById('passwordResetMessage');
 
 
 // Função para lidar com a interface de autenticação
@@ -340,7 +342,7 @@ async function gerarOrcamento() {
         tema: document.getElementById("tema").value,
         cidade: document.getElementById("cidade").value,
         telefone: document.getElementById("telefone").value,
-        email: document.getElementById("email").value,
+        email: document.getElementById("clienteEmail").value, // Alterado para clienteEmail
         cores: document.getElementById("cores").value,
         produtos: [],
         pagamento: Array.from(document.querySelectorAll('input[name="pagamento"]:checked')).map(el => el.value),
@@ -584,7 +586,7 @@ function editarOrcamento(orcamentoId) {
     document.getElementById("tema").value = orcamento.tema;
     document.getElementById("cidade").value = orcamento.cidade;
     document.getElementById("telefone").value = orcamento.telefone;
-    document.getElementById("email").value = orcamento.email;
+    document.getElementById("clienteEmail").value = orcamento.email; // Alterado para clienteEmail
     document.getElementById("cores").value = orcamento.cores;
     document.getElementById("valorFrete").value = formatarMoeda(orcamento.valorFrete);
     document.getElementById("valorOrcamento").value = formatarMoeda(orcamento.valorOrcamento);
@@ -638,7 +640,7 @@ async function atualizarOrcamento() {
         tema: document.getElementById("tema").value,
         cidade: document.getElementById("cidade").value,
         telefone: document.getElementById("telefone").value,
-        email: document.getElementById("email").value,
+        email: document.getElementById("clienteEmail").value, // Alterado para clienteEmail
         cores: document.getElementById("cores").value,
         produtos: [], // Começa com um array vazio e preenche abaixo
         pagamento: Array.from(document.querySelectorAll('input[name="pagamento"]:checked')).map(el => el.value),
@@ -699,7 +701,7 @@ async function gerarPedido(orcamentoId) {
         tema: orcamento.tema,
         cidade: orcamento.cidade,
         telefone: orcamento.telefone,
-        email: orcamento.email,
+        email: orcamento.email, // Mantém email (copia do orçamento)
         cores: orcamento.cores,
         pagamento: orcamento.pagamento,
         valorFrete: orcamento.valorFrete,
@@ -1065,34 +1067,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnExportarRelatorioXLSX = document.querySelector('#relatorio button[onclick="gerarRelatorioXLSX()"]');
     if (btnExportarRelatorioXLSX) {
         btnExportarRelatorioXLSX.addEventListener('click', gerarRelatorioXLSX);
+    }
 
-// ==== RECUPERAÇÃO DE SENHA ====
-        const btnForgotPassword = document.getElementById('btnForgotPassword');
-        const passwordResetMessage = document.getElementById('passwordResetMessage');
+    // ==== RECUPERAÇÃO DE SENHA ====
+    const btnForgotPassword = document.getElementById('btnForgotPassword');
+    const passwordResetMessage = document.getElementById('passwordResetMessage');
 
-        if (btnForgotPassword) {
-            btnForgotPassword.addEventListener('click', async () => {
-                const email = emailInput.value; // Usa o e-mail inserido no campo de e-mail de login
-                if (!email) {
-                    alert("Por favor, insira seu email para redefinir a senha.");
-                    return;
-                }
+    if (btnForgotPassword) {
+        btnForgotPassword.addEventListener('click', async () => {
+            const email = emailInput.value; // Usa o e-mail inserido no campo de e-mail de login
+            if (!email) {
+                alert("Por favor, insira seu email para redefinir a senha.");
+                return;
+            }
 
-                try {
-                    await sendPasswordResetEmail(auth, email);
-                    passwordResetMessage.textContent = "Email de redefinição de senha enviado. Verifique sua caixa de entrada (e spam).";
-                    passwordResetMessage.style.display = "block"; // Mostra mensagem de sucesso
-                    // Oculta a mensagem após alguns segundos (opcional)
-                    setTimeout(() => {
-                        passwordResetMessage.style.display = "none";
-                    }, 5000); // Oculta após 5 segundos
-                } catch (error) {
-                    console.error("Erro ao enviar email de redefinição:", error);
-                    alert("Erro ao redefinir a senha. Verifique o console para detalhes.");
-                    passwordResetMessage.textContent = "Erro ao enviar email de redefinição. Tente novamente.";
-                    passwordResetMessage.style.display = "block"; // Mostra mensagem de erro
-                }
-            });
+            try {
+                await sendPasswordResetEmail(auth, email);
+                passwordResetMessage.textContent = "Email de redefinição de senha enviado. Verifique sua caixa de entrada (e spam).";
+                passwordResetMessage.style.display = "block"; // Mostra mensagem de sucesso
+                // Oculta a mensagem após alguns segundos (opcional)
+                setTimeout(() => {
+                    passwordResetMessage.style.display = "none";
+                }, 5000); // Oculta após 5 segundos
+            } catch (error) {
+                console.error("Erro ao enviar email de redefinição:", error);
+                alert("Erro ao redefinir a senha. Verifique o console para detalhes.");
+                passwordResetMessage.textContent = "Erro ao enviar email de redefinição. Tente novamente.";
+                passwordResetMessage.style.display = "block"; // Mostra mensagem de erro
+            }
+        });
     }
 });
-
