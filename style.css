@@ -395,3 +395,11 @@ nav ul li a[onclick="limparPagina()"]:hover {
     background-color: transparent; /* Fundo transparente no hover */
 }
 /* ==== FIM SEÇÃO - ESTILOS DA SEÇÃO DE AUTENTICAÇÃO ==== */
+
+/* ==== INÍCIO SEÇÃO - ESTILOS ADICIONADOS PARA CAMPOS CALCULADOS ==== */
+.campo-calculado {
+    background-color: #cce5e9; /* Tom de azul claro da paleta */
+    color: #333; /* Cor do texto para melhor leitura */
+    font-weight: bold; /* Opcional: para destacar ainda mais */
+}
+/* ==== FIM SEÇÃO - ESTILOS ADICIONADOS PARA CAMPOS CALCULADOS ==== */
