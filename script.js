@@ -376,13 +376,21 @@ async function gerarOrcamento() {
     alert("Orçamento gerado com sucesso!");
      mostrarPagina('orcamentos-gerados'); //Adicionado
      mostrarOrcamentosGerados();          //Adicionado
+     exibirOrcamentoEmHTML(orcamento); // Chamar a função para exibir o orçamento aqui
 }
 
 function exibirOrcamentoEmHTML(orcamento) {
+    console.log("Função exibirOrcamentoEmHTML chamada com orçamento:", orcamento); // ADICIONE ESTE LOG
     const janelaOrcamento = window.open('orcamento.html', '_blank');
 
     janelaOrcamento.addEventListener('load', () => {
+        console.log("Página orcamento.html carregada."); // ADICIONE ESTE LOG
         const conteudoOrcamento = janelaOrcamento.document.getElementById("conteudo-orcamento");
+
+        if (!conteudoOrcamento) {
+            console.error("Elemento #conteudo-orcamento não encontrado em orcamento.html"); // ADICIONE ESTE LOG
+            return;
+        }
 
         const dataOrcamentoFormatada = orcamento.dataOrcamento.split('-').reverse().join('/');
         const dataValidadeFormatada = orcamento.dataValidade.split('-').reverse().join('/');
@@ -446,6 +454,7 @@ function exibirOrcamentoEmHTML(orcamento) {
         `;
 
         conteudoOrcamento.innerHTML = html;
+        console.log("Conteúdo do orçamento inserido em orcamento.html"); // ADICIONE ESTE LOG
     });
 }
 
@@ -964,7 +973,7 @@ function gerarRelatorio(pedidosFiltrados) {
                     <td>${formatarMoeda(totalPedidos)}</td>
                     <td>${formatarMoeda(totalFrete)}</td>
                     <td>${formatarMoeda(totalMargemLucro)}</td>
-                    <td>${formatarMoeda(totalCustoMaoDeObra)}</td>
+                    <td>${formatarMoeda(totalCustoMãoDeObra)}</td>
                     <td>${quantidadePedidos}</td>
                 </tr>
             </tbody>
