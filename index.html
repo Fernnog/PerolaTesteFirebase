@@ -134,17 +134,17 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="valorFrete">Valor do Frete (R$):</label>
-                        <input type="text" id="valorFrete" name="valorFrete" value="R$ 0,00">
+                        <input type="text" id="valorFrete" name="valorFrete" value="0,00">
                     </div>
                     <div class="form-group">
                         <label for="valorOrcamento">Valor do Orçamento (R$):</label>
-                        <input type="text" id="valorOrcamento" name="valorOrcamento" value="R$ 0,00" readonly class="campo-calculado">
+                        <input type="text" id="valorOrcamento" name="valorOrcamento" value="0,00" readonly class="campo-calculado">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="total">Total (R$):</label>
-                        <input type="text" id="total" name="total" value="R$ 0,00" readonly class="campo-calculado">
+                        <input type="text" id="total" name="total" value="0,00" readonly class="campo-calculado">
                     </div>
                 </div>
                 <div class="form-row">
@@ -190,7 +190,6 @@
                     <!-- Linhas de orçamentos serão adicionadas aqui -->
                 </tbody>
             </table>
-            <div id="pagination-orcamentos" class="pagination"></div> <!-- Container para paginação de orçamentos -->
         </section>
         <!-- ==== FIM SEÇÃO - ORÇAMENTOS GERADOS ==== -->
 
@@ -224,7 +223,6 @@
             <!-- Linhas de pedidos serão adicionadas aqui -->
         </tbody>
     </table>
-    <div id="pagination-pedidos" class="pagination"></div> <!-- Container para paginação de pedidos -->
 </section>
 <!-- ==== FIM SEÇÃO - LISTA DE PEDIDOS ==== -->
 
@@ -305,37 +303,37 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="valorFreteEdicao">Valor do Frete (R$):</label>
-                        <input type="text" id="valorFreteEdicao" name="valorFreteEdicao" value="R$ 0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">
+                        <input type="text" id="valorFreteEdicao" name="valorFreteEdicao" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">
                     </div>
                     <div class="form-group">
                         <label for="valorPedidoEdicao">Valor do Pedido (R$):</label>
-                        <input type="text" id="valorPedidoEdicao" name="valorPedidoEdicao" value="R$ 0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">
+                        <input type="text" id="valorPedidoEdicao" name="valorPedidoEdicao" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">
                     </div>
                 </div>
                 <div class="form-row valores-pedido">
                     <div class="form-group">
                         <label for="custoMaoDeObraEdicao">Custo de mão de obra (R$):</label>
-                        <input type="text" id="custoMaoDeObraEdicao" name="custoMaoDeObraEdicao" value="R$ 0,00" oninput="formatarEntradaMoeda(this)">
+                        <input type="text" id="custoMaoDeObraEdicao" name="custoMaoDeObraEdicao" value="0,00" oninput="formatarEntradaMoeda(this)">
                     </div>
                     <div class="form-group">
                         <label for="margemLucroEdicao">Margem de Lucro (R$):</label>
-                        <input type="text" id="margemLucroEdicao" name="margemLucroEdicao" value="R$ 0,00" oninput="formatarEntradaMoeda(this)">
+                        <input type="text" id="margemLucroEdicao" name="margemLucroEdicao" value="0,00" oninput="formatarEntradaMoeda(this)">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="totalEdicao">Total (R$):</label>
-                        <input type="text" id="totalEdicao" name="totalEdicao" value="R$ 0,00" readonly>
+                        <input type="text" id="totalEdicao" name="totalEdicao" value="0,00" readonly>
                     </div>
                     <div class="form-group">
                         <label for="entradaEdicao">Entrada (R$):</label>
-                        <input type="text" id="entradaEdicao" name="entradaEdicao" value="R$ 0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarRestanteEdicao()"> <!-- onblur ADICIONADO AQUI -->
+                        <input type="text" id="entradaEdicao" name="entradaEdicao" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarRestanteEdicao()">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="restanteEdicao">Restante (R$):</label>
-                        <input type="text" id="restanteEdicao" name="restanteEdicao" value="R$ 0,00" readonly class="campo-calculado">
+                        <input type="text" id="restanteEdicao" name="restanteEdicao" value="0,00" readonly>
                     </div>
                 </div>
                 <div class="form-group">
