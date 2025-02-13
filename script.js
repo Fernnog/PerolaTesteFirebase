@@ -480,12 +480,19 @@ function mostrarOrcamentosGerados() {
         cellTotal.textContent = formatarMoeda(orcamento.total);
         cellNumeroPedido.textContent = orcamento.numeroPedido || 'N/A';
 
-        if (orcamento.pedidoGerado) {
-            cellAcoes.innerHTML = `<button type="button" onclick="exibirOrcamentoEmHTML(orcamento); console.log('Visualizar Orçamento:', orcamento);">Visualizar</button>`; // ADICIONE LOG AQUI
-        } else {
+        let buttonVisualizar = document.createElement('button');
+        buttonVisualizar.textContent = 'Visualizar';
+        buttonVisualizar.classList.add('btnVisualizarOrcamento'); // Adicione uma classe para selecionar depois
+        cellAcoes.appendChild(buttonVisualizar);
+
+        if (!orcamento.pedidoGerado) {
             cellAcoes.innerHTML = `<button type="button" class="btnEditarOrcamento" data-orcamento-id="${orcamento.id}">Editar</button>
-                                   <button type="button" onclick="exibirOrcamentoEmHTML(orcamento); console.log('Visualizar Orçamento:', orcamento);">Visualizar</button>  // ADICIONE LOG AQUI
-                                   <button type="button" class="btnGerarPedido" data-orcamento-id="${orcamento.id}">Gerar Pedido</button>`;
+                                   `; // Removido o botão visualizar daqui, ele já foi adicionado acima
+            let buttonGerarPedido = document.createElement('button');
+            buttonGerarPedido.textContent = 'Gerar Pedido';
+            buttonGerarPedido.classList.add('btnGerarPedido');
+            buttonGerarPedido.dataset.orcamentoId = orcamento.id;
+            cellAcoes.appendChild(buttonGerarPedido);
         }
     });
 
@@ -503,6 +510,22 @@ function mostrarOrcamentosGerados() {
         btn.addEventListener('click', function() {
             const orcamentoId = this.dataset.orcamentoId;
             gerarPedido(orcamentoId);
+        });
+    });
+
+    // Novos event listeners para os botões "Visualizar"
+    const btnsVisualizarOrcamento = document.querySelectorAll('.btnVisualizarOrcamento');
+    btnsVisualizarOrcamento.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Encontra o orçamento correspondente na lista `orcamentos` (você pode precisar de um dataset-id se não estiver funcionando corretamente)
+            const numeroOrcamentoBotao = this.closest('tr').cells[0].textContent; // Pega o número da linha
+            const orcamentoParaVisualizar = orcamentos.find(orcamento => orcamento.numero === numeroOrcamentoBotao);
+            if (orcamentoParaVisualizar) {
+                exibirOrcamentoEmHTML(orcamentoParaVisualizar);
+                console.log('Visualizar Orçamento:', orcamentoParaVisualizar);
+            } else {
+                console.error("Orçamento não encontrado para visualização.");
+            }
         });
     });
 }
@@ -548,12 +571,19 @@ function atualizarListaOrcamentos(orcamentosFiltrados) {
         cellTotal.textContent = formatarMoeda(orcamento.total);
         cellNumeroPedido.textContent = orcamento.numeroPedido || 'N/A';
 
-         if (orcamento.pedidoGerado) {
-            cellAcoes.innerHTML = `<button type="button" onclick="exibirOrcamentoEmHTML(orcamento); console.log('Visualizar Orçamento:', orcamento);">Visualizar</button>`; // ADICIONE LOG AQUI
-        } else {
+        let buttonVisualizar = document.createElement('button');
+        buttonVisualizar.textContent = 'Visualizar';
+        buttonVisualizar.classList.add('btnVisualizarOrcamento'); // Adicione uma classe para selecionar depois
+        cellAcoes.appendChild(buttonVisualizar);
+
+         if (!orcamento.pedidoGerado) {
              cellAcoes.innerHTML = `<button type="button" class="btnEditarOrcamento" data-orcamento-id="${orcamento.id}">Editar</button>
-                                    <button type="button" onclick="exibirOrcamentoEmHTML(orcamento); console.log('Visualizar Orçamento:', orcamento);">Visualizar</button> // ADICIONE LOG AQUI
-                                    <button type="button" class="btnGerarPedido" data-orcamento-id="${orcamento.id}">Gerar Pedido</button>`;
+                                    `; // Removido o botão visualizar daqui, ele já foi adicionado acima
+            let buttonGerarPedido = document.createElement('button');
+            buttonGerarPedido.textContent = 'Gerar Pedido';
+            buttonGerarPedido.classList.add('btnGerarPedido');
+            buttonGerarPedido.dataset.orcamentoId = orcamento.id;
+            cellAcoes.appendChild(buttonGerarPedido);
         }
     });
       // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
@@ -570,6 +600,21 @@ function atualizarListaOrcamentos(orcamentosFiltrados) {
         btn.addEventListener('click', function() {
             const orcamentoId = this.dataset.orcamentoId;
             gerarPedido(orcamentoId);
+        });
+    });
+      // Novos event listeners para os botões "Visualizar"
+    const btnsVisualizarOrcamento = document.querySelectorAll('.btnVisualizarOrcamento');
+    btnsVisualizarOrcamento.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Encontra o orçamento correspondente na lista `orcamentos` (você pode precisar de um dataset-id se não estiver funcionando corretamente)
+            const numeroOrcamentoBotao = this.closest('tr').cells[0].textContent; // Pega o número da linha
+            const orcamentoParaVisualizar = orcamentos.find(orcamento => orcamento.numero === numeroOrcamentoBotao);
+            if (orcamentoParaVisualizar) {
+                exibirOrcamentoEmHTML(orcamentoParaVisualizar);
+                console.log('Visualizar Orçamento:', orcamentoParaVisualizar);
+            } else {
+                console.error("Orçamento não encontrado para visualização.");
+            }
         });
     });
 }
