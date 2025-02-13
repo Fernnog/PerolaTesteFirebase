@@ -1065,5 +1065,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnExportarRelatorioXLSX = document.querySelector('#relatorio button[onclick="gerarRelatorioXLSX()"]');
     if (btnExportarRelatorioXLSX) {
         btnExportarRelatorioXLSX.addEventListener('click', gerarRelatorioXLSX);
+
+// ==== RECUPERAÇÃO DE SENHA ====
+        const btnForgotPassword = document.getElementById('btnForgotPassword');
+        const passwordResetMessage = document.getElementById('passwordResetMessage');
+
+        if (btnForgotPassword) {
+            btnForgotPassword.addEventListener('click', async () => {
+                const email = emailInput.value; // Usa o e-mail inserido no campo de e-mail de login
+                if (!email) {
+                    alert("Por favor, insira seu email para redefinir a senha.");
+                    return;
+                }
+
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    passwordResetMessage.textContent = "Email de redefinição de senha enviado. Verifique sua caixa de entrada (e spam).";
+                    passwordResetMessage.style.display = "block"; // Mostra mensagem de sucesso
+                    // Oculta a mensagem após alguns segundos (opcional)
+                    setTimeout(() => {
+                        passwordResetMessage.style.display = "none";
+                    }, 5000); // Oculta após 5 segundos
+                } catch (error) {
+                    console.error("Erro ao enviar email de redefinição:", error);
+                    alert("Erro ao redefinir a senha. Verifique o console para detalhes.");
+                    passwordResetMessage.textContent = "Erro ao enviar email de redefinição. Tente novamente.";
+                    passwordResetMessage.style.display = "block"; // Mostra mensagem de erro
+                }
+            });
     }
 });
+
