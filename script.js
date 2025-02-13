@@ -30,13 +30,6 @@ let pedidoEditando = null; // Adicionado para rastrear o pedido sendo editado
 let orcamentos = [];
 let pedidos = [];
 let usuarioAtual = null; // Armazena o usuário logado
-const pageSize = 10; // Defina o número de itens por página aqui
-let paginaAtualOrcamentos = 1; // Página atual para orçamentos
-let paginaAtualPedidos = 1;    // Página atual para pedidos
-let orcamentosFiltrados = []; // Para armazenar orçamentos filtrados
-let pedidosFiltrados = [];    // Para armazenar pedidos filtrados
-let filtroAtivoOrcamentos = false; // Indica se o filtro de orçamentos está ativo
-let filtroAtivoPedidos = false;   // Indica se o filtro de pedidos está ativo
 /* ==== FIM SEÇÃO - VARIÁVEIS GLOBAIS ==== */
 
 /* ==== INÍCIO SEÇÃO - AUTENTICAÇÃO ==== */
@@ -476,19 +469,11 @@ function exibirOrcamentoEmHTML(orcamento) {
 /* ==== FIM SEÇÃO - GERAÇÃO DE ORÇAMENTO ==== */
 
 /* ==== INÍCIO SEÇÃO - ORÇAMENTOS GERADOS ==== */
-function mostrarOrcamentosGerados(pagina = 1) {
-    paginaAtualOrcamentos = pagina;
+function mostrarOrcamentosGerados() {
     const tbody = document.querySelector("#tabela-orcamentos tbody");
     tbody.innerHTML = '';
-    const paginationContainer = document.getElementById('pagination-orcamentos');
-    paginationContainer.innerHTML = ''; // Limpa os botões de paginação existentes
 
-    const listaOrcamentos = filtroAtivoOrcamentos ? orcamentosFiltrados : orcamentos;
-    const startIndex = (paginaAtualOrcamentos - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const orcamentosPagina = listaOrcamentos.slice(startIndex, endIndex);
-
-    orcamentosPagina.forEach(orcamento => {
+    orcamentos.forEach(orcamento => {  // Usa a variável global 'orcamentos'
         const row = tbody.insertRow();
         const cellNumero = row.insertCell();
         const cellData = row.insertCell();
@@ -505,20 +490,21 @@ function mostrarOrcamentosGerados(pagina = 1) {
 
         let buttonVisualizar = document.createElement('button');
         buttonVisualizar.textContent = 'Visualizar';
-        buttonVisualizar.classList.add('btnVisualizarOrcamento');
+        buttonVisualizar.classList.add('btnVisualizarOrcamento'); // Adicione uma classe para selecionar depois
         cellAcoes.appendChild(buttonVisualizar);
 
         if (!orcamento.pedidoGerado) {
-            cellAcoes.innerHTML += ` <button type="button" class="btnEditarOrcamento" data-orcamento-id="${orcamento.id}">Editar</button>
-                                     <button type="button" class="btnGerarPedido" data-orcamento-id="${orcamento.id}">Gerar Pedido</button>`;
+            cellAcoes.innerHTML = `<button type="button" class="btnEditarOrcamento" data-orcamento-id="${orcamento.id}">Editar</button>
+                                   `; // Removido o botão visualizar daqui, ele já foi adicionado acima
+            let buttonGerarPedido = document.createElement('button');
+            buttonGerarPedido.textContent = 'Gerar Pedido';
+            buttonGerarPedido.classList.add('btnGerarPedido');
+            buttonGerarPedido.dataset.orcamentoId = orcamento.id;
+            cellAcoes.appendChild(buttonGerarPedido);
         }
     });
 
-    // Adiciona controles de paginação
-    gerarControlesPaginacao(paginationContainer, listaOrcamentos.length, paginaAtualOrcamentos, mostrarOrcamentosGerados);
-
-    // ... (Event listeners para botões Editar, Gerar Pedido e Visualizar já existentes - não precisam mudar) ...
-     // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
+      // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
     const btnsEditarOrcamento = document.querySelectorAll('.btnEditarOrcamento');
     btnsEditarOrcamento.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -553,14 +539,13 @@ function mostrarOrcamentosGerados(pagina = 1) {
 }
 
 function filtrarOrcamentos() {
-    filtroAtivoOrcamentos = true;
     const dataInicio = document.getElementById('filtroDataInicioOrcamento').value;
     const dataFim = document.getElementById('filtroDataFimOrcamento').value;
     const numeroOrcamentoFiltro = parseInt(document.getElementById('filtroNumeroOrcamento').value);
     const anoOrcamentoFiltro = parseInt(document.getElementById('filtroAnoOrcamento').value);
     const clienteOrcamentoFiltro = document.getElementById('filtroClienteOrcamento').value.toLowerCase();
 
-    orcamentosFiltrados = orcamentos.filter(orcamento => {
+    const orcamentosFiltrados = orcamentos.filter(orcamento => {
         const [numOrcamento, anoOrcamento] = orcamento.numero.split('/');
         const dataOrcamento = new Date(orcamento.dataOrcamento);
         const nomeCliente = orcamento.cliente.toLowerCase();
@@ -572,120 +557,75 @@ function filtrarOrcamentos() {
                nomeCliente.includes(clienteOrcamentoFiltro);
     });
 
-    paginaAtualOrcamentos = 1; // Reseta a página ao filtrar
-    mostrarOrcamentosGerados(1); // Exibe a primeira página dos resultados filtrados
+    atualizarListaOrcamentos(orcamentosFiltrados);
 }
 
-function mostrarPedidosRealizados(pagina = 1) {
-    paginaAtualPedidos = pagina;
-    const tbody = document.querySelector("#tabela-pedidos tbody");
+function atualizarListaOrcamentos(orcamentosFiltrados) {
+    const tbody = document.querySelector("#tabela-orcamentos tbody");
     tbody.innerHTML = '';
-    const paginationContainer = document.getElementById('pagination-pedidos');
-    paginationContainer.innerHTML = ''; // Limpa os botões de paginação existentes
 
-    const listaPedidos = filtroAtivoPedidos ? pedidosFiltrados : pedidos;
-    const startIndex = (paginaAtualPedidos - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const pedidosPagina = listaPedidos.slice(startIndex, endIndex);
-
-    pedidosPagina.forEach(pedido => {
+    orcamentosFiltrados.forEach(orcamento => {
         const row = tbody.insertRow();
         const cellNumero = row.insertCell();
-        const cellDataPedido = row.insertCell();
+        const cellData = row.insertCell();
         const cellCliente = row.insertCell();
         const cellTotal = row.insertCell();
+        const cellNumeroPedido = row.insertCell();
         const cellAcoes = row.insertCell();
 
-        cellNumero.textContent = pedido.numero;
-        cellDataPedido.textContent = pedido.dataPedido;
-        cellCliente.textContent = pedido.cliente;
-        cellTotal.textContent = formatarMoeda(pedido.total);
-        cellAcoes.innerHTML = `<button type="button" class="btnEditarPedido" data-pedido-id="${pedido.id}">Editar</button>`;
+        cellNumero.textContent = orcamento.numero;
+        cellData.textContent = orcamento.dataOrcamento;
+        cellCliente.textContent = orcamento.cliente;
+        cellTotal.textContent = formatarMoeda(orcamento.total);
+        cellNumeroPedido.textContent = orcamento.numeroPedido || 'N/A';
+
+        let buttonVisualizar = document.createElement('button');
+        buttonVisualizar.textContent = 'Visualizar';
+        buttonVisualizar.classList.add('btnVisualizarOrcamento'); // Adicione uma classe para selecionar depois
+        cellAcoes.appendChild(buttonVisualizar);
+
+         if (!orcamento.pedidoGerado) {
+             cellAcoes.innerHTML = `<button type="button" class="btnEditarOrcamento" data-orcamento-id="${orcamento.id}">Editar</button>
+                                    `; // Removido o botão visualizar daqui, ele já foi adicionado acima
+            let buttonGerarPedido = document.createElement('button');
+            buttonGerarPedido.textContent = 'Gerar Pedido';
+            buttonGerarPedido.classList.add('btnGerarPedido');
+            buttonGerarPedido.dataset.orcamentoId = orcamento.id;
+            cellAcoes.appendChild(buttonGerarPedido);
+        }
+    });
+      // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
+    const btnsEditarOrcamento = document.querySelectorAll('.btnEditarOrcamento');
+    btnsEditarOrcamento.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orcamentoId = this.dataset.orcamentoId;
+            editarOrcamento(orcamentoId);
+        });
     });
 
-    // Adiciona controles de paginação
-    gerarControlesPaginacao(paginationContainer, listaPedidos.length, paginaAtualPedidos, mostrarPedidosRealizados);
-
-     // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
-    const btnsEditarPedido = document.querySelectorAll('.btnEditarPedido');
-    btnsEditarPedido.forEach(btn => {
+    const btnsGerarPedido = document.querySelectorAll('.btnGerarPedido');
+    btnsGerarPedido.forEach(btn => {
         btn.addEventListener('click', function() {
-            const pedidoId = this.dataset.pedidoId;
-            editarPedido(pedidoId);
+            const orcamentoId = this.dataset.orcamentoId;
+            gerarPedido(orcamentoId);
+        });
+    });
+      // Novos event listeners para os botões "Visualizar"
+    const btnsVisualizarOrcamento = document.querySelectorAll('.btnVisualizarOrcamento');
+    btnsVisualizarOrcamento.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Encontra o orçamento correspondente na lista `orcamentos` (você pode precisar de um dataset-id se não estiver funcionando corretamente)
+            const numeroOrcamentoBotao = this.closest('tr').cells[0].textContent; // Pega o número da linha
+            const orcamentoParaVisualizar = orcamentos.find(orcamento => orcamento.numero === numeroOrcamentoBotao);
+            if (orcamentoParaVisualizar) {
+                exibirOrcamentoEmHTML(orcamentoParaVisualizar);
+                console.log('Visualizar Orçamento:', orcamentoParaVisualizar);
+            } else {
+                console.error("Orçamento não encontrado para visualização.");
+            }
         });
     });
 }
-
-function filtrarPedidos() {
-    filtroAtivoPedidos = true;
-    const dataInicio = document.getElementById('filtroDataInicioPedido').value;
-    const dataFim = document.getElementById('filtroDataFimPedido').value;
-    const numeroPedidoFiltro = parseInt(document.getElementById('filtroNumeroPedido').value);
-    const anoPedidoFiltro = parseInt(document.getElementById('filtroAnoPedido').value);
-    const clientePedidoFiltro = document.getElementById('filtroClientePedido').value.toLowerCase();
-
-    pedidosFiltrados = pedidos.filter(pedido => {
-        const [numPedido, anoPedido] = pedido.numero.split('/');
-        const dataPedido = new Date(pedido.dataPedido);
-        const nomeCliente = pedido.cliente.toLowerCase();
-
-        return (!dataInicio || dataPedido >= new Date(dataInicio)) &&
-               (!dataFim || dataPedido <= new Date(dataFim)) &&
-               (!numeroPedidoFiltro || parseInt(numPedido) === numeroPedidoFiltro) &&
-               (!anoPedidoFiltro || parseInt(anoPedido) === anoPedidoFiltro) &&
-               nomeCliente.includes(clientePedidoFiltro);
-    });
-
-    paginaAtualPedidos = 1; // Reseta a página ao filtrar
-    mostrarPedidosRealizados(1); // Exibe a primeira página dos resultados filtrados
-}
-
-function gerarControlesPaginacao(container, totalItens, paginaAtual, funcaoMostrarPagina) {
-    const numeroPaginas = Math.ceil(totalItens / pageSize);
-    if (numeroPaginas <= 1) return; // Não mostrar paginação se houver apenas uma página
-
-    const ulPaginacao = document.createElement('ul');
-    ulPaginacao.classList.add('pagination-list');
-
-    // Botão "Anterior"
-    if (paginaAtual > 1) {
-        const liAnterior = criarItemPaginacao('Anterior', paginaAtual - 1, funcaoMostrarPagina);
-        ulPaginacao.appendChild(liAnterior);
-    }
-
-    // Numeros das páginas
-    for (let i = 1; i <= numeroPaginas; i++) {
-        const liPagina = criarItemPaginacao(i, i, funcaoMostrarPagina, i === paginaAtual);
-        ulPaginacao.appendChild(liPagina);
-    }
-
-    // Botão "Próximo"
-    if (paginaAtual < numeroPaginas) {
-        const proximoItem = criarItemPaginacao('Próximo', paginaAtual + 1, funcaoMostrarPagina);
-        ulPaginacao.appendChild(proximoItem);
-    }
-
-    container.appendChild(ulPaginacao);
-}
-
-function criarItemPaginacao(texto, pagina, funcaoMostrarPagina, isAtivo = false) {
-    const li = document.createElement('li');
-    li.classList.add('page-item');
-    if (isAtivo) li.classList.add('active');
-
-    const link = document.createElement('a');
-    link.classList.add('page-link');
-    link.href = '#';
-    link.textContent = texto;
-    link.addEventListener('click', (event) => {
-        event.preventDefault();
-        funcaoMostrarPagina(pagina);
-    });
-
-    li.appendChild(link);
-    return li;
-}
-
 
 function editarOrcamento(orcamentoId) {
     const orcamento = orcamentos.find(o => o.id === orcamentoId);
@@ -861,20 +801,11 @@ async function gerarPedido(orcamentoId) {
 /* ==== FIM SEÇÃO - GERAR PEDIDO A PARTIR DO ORÇAMENTO ==== */
 
 /* ==== INÍCIO SEÇÃO - PEDIDOS REALIZADOS ==== */
-function mostrarPedidosRealizados(pagina = 1) {
-    paginaAtualPedidos = pagina;
+function mostrarPedidosRealizados() {
     const tbody = document.querySelector("#tabela-pedidos tbody");
     tbody.innerHTML = '';
-    const paginationContainer = document.getElementById('pagination-pedidos');
-    paginationContainer.innerHTML = ''; // Limpa paginação existente
 
-    const listaPedidos = filtroAtivoPedidos ? pedidosFiltrados : pedidos;
-    const startIndex = (paginaAtualPedidos - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const pedidosPagina = listaPedidos.slice(startIndex, endIndex);
-
-
-    pedidosPagina.forEach(pedido => {
+    pedidos.forEach(pedido => {
         const row = tbody.insertRow();
         const cellNumero = row.insertCell();
         const cellDataPedido = row.insertCell();
@@ -889,10 +820,57 @@ function mostrarPedidosRealizados(pagina = 1) {
         cellAcoes.innerHTML = `<button type="button" class="btnEditarPedido" data-pedido-id="${pedido.id}">Editar</button>`;
     });
 
-    // Adicionar controles de paginação
-    gerarControlesPaginacao(paginationContainer, listaPedidos.length, paginaAtualPedidos, mostrarPedidosRealizados);
-
     // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
+    const btnsEditarPedido = document.querySelectorAll('.btnEditarPedido');
+    btnsEditarPedido.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const pedidoId = this.dataset.pedidoId;
+            editarPedido(pedidoId);
+        });
+    });
+}
+
+function filtrarPedidos() {
+    const dataInicio = document.getElementById('filtroDataInicioPedido').value;
+    const dataFim = document.getElementById('filtroDataFimPedido').value;
+    const numeroPedidoFiltro = parseInt(document.getElementById('filtroNumeroPedido').value);
+    const anoPedidoFiltro = parseInt(document.getElementById('filtroAnoPedido').value);
+    const clientePedidoFiltro = document.getElementById('filtroClientePedido').value.toLowerCase();
+
+    const pedidosFiltrados = pedidos.filter(pedido => {
+        const [numPedido, anoPedido] = pedido.numero.split('/');
+        const dataPedido = new Date(pedido.dataPedido);
+        const nomeCliente = pedido.cliente.toLowerCase();
+
+        return (!dataInicio || dataPedido >= new Date(dataInicio)) &&
+               (!dataFim || dataPedido <= new Date(dataFim)) &&
+               (!numeroPedidoFiltro || parseInt(numPedido) === numeroPedidoFiltro) &&
+               (!anoPedidoFiltro || parseInt(anoPedido) === anoPedidoFiltro) &&
+               nomeCliente.includes(clientePedidoFiltro);
+    });
+
+    atualizarListaPedidos(pedidosFiltrados);
+}
+
+function atualizarListaPedidos(pedidosFiltrados) {
+    const tbody = document.querySelector("#tabela-pedidos tbody");
+    tbody.innerHTML = '';
+
+    pedidosFiltrados.forEach(pedido => {
+        const row = tbody.insertRow();
+        const cellNumero = row.insertCell();
+        const cellDataPedido = row.insertCell();
+        const cellCliente = row.insertCell();
+        const cellTotal = row.insertCell();
+        const cellAcoes = row.insertCell();
+
+        cellNumero.textContent = pedido.numero;
+        cellDataPedido.textContent = pedido.dataPedido;
+        cellCliente.textContent = pedido.cliente;
+        cellTotal.textContent = formatarMoeda(pedido.total);
+        cellAcoes.innerHTML = `<button type="button" class="btnEditarPedido" data-pedido-id="${pedido.id}">Editar</button>`;
+    });
+      // Adicionar event listeners para botões dinâmicos (depois de inseridos no DOM)
     const btnsEditarPedido = document.querySelectorAll('.btnEditarPedido');
     btnsEditarPedido.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -1058,7 +1036,7 @@ function gerarRelatorio(pedidosFiltrados) {
                     <td>${formatarMoeda(totalPedidos)}</td>
                     <td>${formatarMoeda(totalFrete)}</td>
                     <td>${formatarMoeda(totalMargemLucro)}</td>
-                    <td>${formatarMoeda(totalCustoMãoDeObra)}</td>
+                    <td>${formatarMoeda(totalCustoMaoDeObra)}</td>
                     <td>${quantidadePedidos}</td>
                 </tr>
             </tbody>
@@ -1131,9 +1109,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const paginaId = link.dataset.pagina; // Pega o ID da página do atributo data-pagina
             mostrarPagina(paginaId); // Chama sua função mostrarPagina
             // Funções adicionais a serem chamadas ao clicar em certos menus (se necessário)
-            if (paginaId === 'orcamentos-gerados') mostrarOrcamentosGerados(paginaAtualOrcamentos); // Passa a página atual
-            if (paginaId === 'lista-pedidos') mostrarPedidosRealizados(paginaAtualPedidos); // Passa a página atual
-            if (paginaId === 'form-orcamento') filtroAtivoOrcamentos = filtroAtivoPedidos = false; // Desativa filtros ao ir para orçamento
+            if (paginaId === 'orcamentos-gerados') mostrarOrcamentosGerados();
+            if (paginaId === 'lista-pedidos') mostrarPedidosRealizados();
         });
     });
 
@@ -1298,17 +1275,8 @@ document.addEventListener('DOMContentLoaded', () => {
         valorPedidoEdicaoInput.addEventListener('blur', atualizarTotaisEdicao);
     }
 
-     // Event listener para o input de entrada (formulário de edição de pedido)
-    const entradaEdicaoInput = document.getElementById('entradaEdicao');
-    if (entradaEdicaoInput) {
-        entradaEdicaoInput.addEventListener('blur', atualizarRestanteEdicao); // Garante que restanteEdicao seja atualizado ao sair do campo entradaEdicao
-    }
-
-
     // ==== FIM - ADICIONANDO EVENT LISTENERS PROGRAMATICAMENTE ====
 
     // Inicializar campos moeda para 'R$ 0,00' no carregamento da página
     limparCamposMoeda();
-    mostrarOrcamentosGerados(); // Exibe a primeira página de orçamentos ao carregar
-    mostrarPedidosRealizados();  // Exibe a primeira página de pedidos ao carregar
 });
