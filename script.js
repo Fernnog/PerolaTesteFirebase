@@ -1114,6 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.addEventListener('input', function(event) {
             if (event.target.classList.contains('produto-valor-unit')) {
                 formatarEntradaMoeda(event.target);
+                atualizarTotais(); // CHAME A FUNÇÃO AQUI TAMBÉM NO EVENTO 'input'
             }
         });
         tbody.addEventListener('blur', function(event) {
