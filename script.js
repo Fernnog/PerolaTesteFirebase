@@ -380,15 +380,15 @@ async function gerarOrcamento() {
 }
 
 function exibirOrcamentoEmHTML(orcamento) {
-    console.log("Função exibirOrcamentoEmHTML chamada com orçamento:", orcamento); // ADICIONE ESTE LOG
+    console.log("Função exibirOrcamentoEmHTML chamada com orçamento:", orcamento);
     const janelaOrcamento = window.open('orcamento.html', '_blank');
 
     janelaOrcamento.addEventListener('load', () => {
-        console.log("Página orcamento.html carregada."); // ADICIONE ESTE LOG
+        console.log("Página orcamento.html carregada.");
         const conteudoOrcamento = janelaOrcamento.document.getElementById("conteudo-orcamento");
 
         if (!conteudoOrcamento) {
-            console.error("Elemento #conteudo-orcamento não encontrado em orcamento.html"); // ADICIONE ESTE LOG
+            console.error("Elemento #conteudo-orcamento não encontrado em orcamento.html");
             return;
         }
 
@@ -454,7 +454,7 @@ function exibirOrcamentoEmHTML(orcamento) {
         `;
 
         conteudoOrcamento.innerHTML = html;
-        console.log("Conteúdo do orçamento inserido em orcamento.html"); // ADICIONE ESTE LOG
+        console.log("Conteúdo do orçamento inserido em orcamento.html");
     });
 }
 
@@ -481,10 +481,10 @@ function mostrarOrcamentosGerados() {
         cellNumeroPedido.textContent = orcamento.numeroPedido || 'N/A';
 
         if (orcamento.pedidoGerado) {
-            cellAcoes.innerHTML = `<button type="button" onclick="exibirOrcamentoEmHTML(orcamento)">Visualizar</button>`;
+            cellAcoes.innerHTML = `<button type="button" onclick="exibirOrcamentoEmHTML(orcamento); console.log('Visualizar Orçamento:', orcamento);">Visualizar</button>`; // ADICIONE LOG AQUI
         } else {
             cellAcoes.innerHTML = `<button type="button" class="btnEditarOrcamento" data-orcamento-id="${orcamento.id}">Editar</button>
-                                   <button type="button" onclick="exibirOrcamentoEmHTML(orcamento)">Visualizar</button>
+                                   <button type="button" onclick="exibirOrcamentoEmHTML(orcamento); console.log('Visualizar Orçamento:', orcamento);">Visualizar</button>  // ADICIONE LOG AQUI
                                    <button type="button" class="btnGerarPedido" data-orcamento-id="${orcamento.id}">Gerar Pedido</button>`;
         }
     });
@@ -549,10 +549,10 @@ function atualizarListaOrcamentos(orcamentosFiltrados) {
         cellNumeroPedido.textContent = orcamento.numeroPedido || 'N/A';
 
          if (orcamento.pedidoGerado) {
-            cellAcoes.innerHTML = `<button type="button" onclick="exibirOrcamentoEmHTML(orcamento)">Visualizar</button>`;
+            cellAcoes.innerHTML = `<button type="button" onclick="exibirOrcamentoEmHTML(orcamento); console.log('Visualizar Orçamento:', orcamento);">Visualizar</button>`; // ADICIONE LOG AQUI
         } else {
              cellAcoes.innerHTML = `<button type="button" class="btnEditarOrcamento" data-orcamento-id="${orcamento.id}">Editar</button>
-                                    <button type="button" onclick="exibirOrcamentoEmHTML(orcamento)">Visualizar</button>
+                                    <button type="button" onclick="exibirOrcamentoEmHTML(orcamento); console.log('Visualizar Orçamento:', orcamento);">Visualizar</button> // ADICIONE LOG AQUI
                                     <button type="button" class="btnGerarPedido" data-orcamento-id="${orcamento.id}">Gerar Pedido</button>`;
         }
     });
