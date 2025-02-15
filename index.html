@@ -3,381 +3,386 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pérola Rara - Gerenciamento de Pedidos</title>
-    <link rel="stylesheet" href="./style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Adicionando a biblioteca SheetJS (xlsx) -->
+    <title>Pérola Rara - Precificação</title>
+    <link rel="stylesheet" href="precificacao.css">
+    <!-- Adicionando a biblioteca SheetJS (xlsx) -  NECESSÁRIO PARA FUTURA EXPORTAÇÃO DE RELATÓRIOS -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <!-- O script principal será type="module" e importará o Firebase -->
-    <script type="module" src="./script.js"></script>
+    <!--  SDKs do Firebase (Modular - using 9.x.x for CDN links) -->
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-analytics.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- ==== INÍCIO SEÇÃO - CABEÇALHO ==== -->
-        <header>
-            <div class="logo-container">
-                <img src="./logo_perola_rara.png" alt="Logo Pérola Rara" id="logo">
-            </div>
-            <h1>Pérola Rara</h1>
-            <hr class="titulo">
-            <nav>
-                <ul>
-                    <li><a href="#" data-pagina="form-orcamento">Início</a></li>
-                    <li><a href="#" data-pagina="orcamentos-gerados">Orçamentos Gerados</a></li>
-                    <li><a href="#" data-pagina="lista-pedidos">Pedidos Realizados</a></li>
-                    <li><a href="#" data-pagina="relatorio">Relatório</a></li>
-                    <!-- REMOVIDO o link Limpar Página -->
-                </ul>
-            </nav>
-            <hr class="menu">
-        </header>
-        <!-- ==== FIM SEÇÃO - CABEÇALHO ==== -->
 
-        <!-- Seção de Autenticação (Inicialmente oculta) -->
-        <div id="authSection" style="display: block; text-align: center; margin-bottom: 20px;">
-            <input type="email" id="email" placeholder="Email" style="margin-bottom: 10px;">
-            <input type="password" id="password" placeholder="Senha" style="margin-bottom: 10px;">
-            <div>
-                <button id="btnRegister">Registrar</button>
-                <button id="btnLogin">Entrar</button>
-                <button id="btnLogout" style="display:none;">Sair</button>
-                <span id="btnForgotPasswordContainer" style="margin-left: 10px;">
-                    <button id="btnForgotPassword">Esqueci minha senha?</button>
-                </span>
-            </div>
-            <p id="authStatus">Nenhum usuário autenticado</p>
-            <div id="passwordResetMessage" style="display:none; color: green; margin-top: 10px;"></div>
-        </div>
-
-      <!-- ==== Adicionado após Seção de Autenticação ==== -->
-        <div id="appContent" style="display: block;">
-
-        <!-- ==== INÍCIO SEÇÃO - FORMULÁRIO DE ORÇAMENTO ==== -->
-        <section id="form-orcamento" class="pagina">
-            <h2>Novo Orçamento</h2>
-            <hr class="subtitulo">
-            <form id="orcamento">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="dataOrcamento">Data do Orçamento:</label>
-                        <input type="date" id="dataOrcamento" name="dataOrcamento">
-                    </div>
-                    <div class="form-group">
-                        <label for="dataValidade">Data de Validade:</label>
-                        <input type="date" id="dataValidade" name="dataValidade">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="cliente">Cliente:</label>
-                        <input type="text" id="cliente" name="cliente" placeholder="Nome do Cliente">
-                    </div>
-                    <div class="form-group">
-                        <label for="endereco">Endereço:</label>
-                        <input type="text" id="endereco" name="endereco" placeholder="Endereço do Cliente">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="tema">Tema:</label>
-                        <input type="text" id="tema" name="tema" placeholder="Tema do Orçamento">
-                    </div>
-                    <div class="form-group">
-                        <label for="cidade">Cidade:</label>
-                        <input type="text" id="cidade" name="cidade" placeholder="Cidade do Cliente">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="telefone">Telefone/Celular:</label>
-                        <input type="text" id="telefone" name="telefone" placeholder="Número de Telefone ou Celular">
-                    </div>
-                    <div class="form-group">
-                        <label for="clienteEmail">E-mail:</label>
-                        <input type="email" id="clienteEmail" name="email" placeholder="Endereço de E-mail">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="cores">Cores:</label>
-                        <input type="text" id="cores" name="cores" placeholder="Cores Preferidas">
-                    </div>
-                </div>
-                <hr class="tabela">
-                <div class="table-responsive">
-                    <table id="tabelaProdutos">
-                        <thead>
-                            <tr>
-                                <th>Quantidade</th>
-                                <th>Descrição do Produto</th>
-                                <th>Valor Unit.</th>
-                                <th>Valor Total do Produto</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Linhas de produtos serão adicionadas aqui -->
-                        </tbody>
-                    </table>
-                    <button type="button" id="btnAddProdutoOrcamento">Adicionar Produto</button>
-                </div>
-                <hr class="final-tabela">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Pagamento:</label>
-                        <label><input type="checkbox" name="pagamento" value="pix"> PIX</label>
-                        <label><input type="checkbox" name="pagamento" value="dinheiro"> Dinheiro</label>
-                        <label><input type="checkbox" name="pagamento" value="cartaoCredito"> Cartão de Crédito</label>
-                        <label><input type="checkbox" name="pagamento" value="cartaoDebito"> Cartão de Débito</label>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="valorFrete">Valor do Frete (R$):</label>
-                        <input type="text" id="valorFrete" name="valorFrete" value="0,00">
-                    </div>
-                    <div class="form-group">
-                        <label for="valorOrcamento">Valor do Orçamento (R$):</label>
-                        <input type="text" id="valorOrcamento" name="valorOrcamento" value="0,00" readonly class="campo-calculado">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="total">Total (R$):</label>
-                        <input type="text" id="total" name="total" value="0,00" readonly class="campo-calculado">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="observacoes">Observações:</label>
-                        <textarea id="observacoes" name="observacoes" rows="4"></textarea>
-                    </div>
-                </div>
-                <button type="button" id="btnGerarOrcamento">Gerar Orçamento</button>
-                <button type="button" id="btnAtualizarOrcamento" style="display: none;">Atualizar Orçamento</button>
-            </form>
-        </section>
-        <!-- ==== FIM SEÇÃO - FORMULÁRIO DE ORÇAMENTO ==== -->
-
-        <!-- ==== INÍCIO SEÇÃO - ORÇAMENTOS GERADOS ==== -->
-        <section id="orcamentos-gerados" class="pagina" style="display:none;">
-            <h2>Orçamentos Gerados</h2>
-            <div class="filtro-data">
-                <label for="filtroDataInicioOrcamento">Início:</label>
-                <input type="date" id="filtroDataInicioOrcamento">
-                <label for="filtroDataFimOrcamento">Fim:</label>
-                <input type="date" id="filtroDataFimOrcamento">
-                <label for="filtroNumeroOrcamento">Número:</label>
-                <input type="number" id="filtroNumeroOrcamento" placeholder="Número do Orçamento">
-                <label for="filtroAnoOrcamento">Ano:</label>
-                <input type="number" id="filtroAnoOrcamento" placeholder="Ano do Orçamento">
-                <label for="filtroClienteOrcamento">Cliente:</label>
-                <input type="text" id="filtroClienteOrcamento" placeholder="Parte do nome do Cliente">
-                <button type="button" onclick="filtrarOrcamentos()">Filtrar</button>
-            </div>
-            <table id="tabela-orcamentos">
-                <thead>
-                    <tr>
-                        <th>Número</th>
-                        <th>Data</th>
-                        <th>Cliente</th>
-                        <th>Total</th>
-                        <th>Pedido</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Linhas de orçamentos serão adicionadas aqui -->
-                </tbody>
-            </table>
-        </section>
-        <!-- ==== FIM SEÇÃO - ORÇAMENTOS GERADOS ==== -->
-
-      <!-- ==== INÍCIO SEÇÃO - LISTA DE PEDIDOS ==== -->
-<section id="lista-pedidos" class="pagina" style="display:none;">
-    <h2>Pedidos Realizados</h2>
-    <div class="filtro-data">
-        <label for="filtroDataInicioPedido">Início:</label>
-        <input type="date" id="filtroDataInicioPedido">
-        <label for="filtroDataFimPedido">Fim:</label>
-        <input type="date" id="filtroDataFimPedido">
-        <label for="filtroNumeroPedido">Número:</label>
-        <input type="number" id="filtroNumeroPedido" placeholder="Número do Pedido">
-        <label for="filtroAnoPedido">Ano:</label>
-        <input type="number" id="filtroAnoPedido" placeholder="Ano do Pedido">
-        <label for="filtroClientePedido">Cliente:</label>
-        <input type="text" id="filtroClientePedido" placeholder="Parte do nome do Cliente">
-        <button type="button" onclick="filtrarPedidos()">Filtrar</button>
+<header>
+    <div class="top-bar">
+        <div id="ultimoBackup" class="ultimo-backup"></div> <!-- Mantido para mostrar status -->
     </div>
-    <table id="tabela-pedidos">
+    <div class="logo-container">
+        <img src="logo_perola_rara.png" alt="Logo Pérola Rara" id="logo">
+    </div>
+    <h1>Pérola Rara</h1>
+    <hr class="titulo">
+    <nav>
+        <ul>
+            <li><a href="#" onclick="mostrarSubMenu('materiais-insumos')">Custo de Materiais e Insumos</a></li>
+            <li><a href="#" onclick="mostrarSubMenu('mao-de-obra')">Custo de Mão de Obra</a></li>
+            <li><a href="#" onclick="mostrarSubMenu('custos-indiretos')">Custos Indiretos</a></li>
+            <li><a href="#" onclick="mostrarSubMenu('produtos-cadastrados')">Produtos Cadastrados</a></li>
+            <li><a href="#" onclick="mostrarSubMenu('calculo-precificacao')">Cálculo da Precificação</a></li>
+            <li><a href="#" onclick="mostrarSubMenu('precificacoes-geradas')">Precificações Geradas</a></li>
+            <!--  REMOVIDOS: Importar/Exportar e Limpar Página -->
+        </ul>
+    </nav>
+    <hr class="menu">
+</header>
+
+<!-- Adicionado para mensagens de status -->
+<div id="mensagens-status" style="text-align: center; padding: 10px;"></div>
+
+<!-- Seções (permanecem as mesmas, exceto pela remoção da seção Importar/Exportar) -->
+
+<!-- Seção Materiais e Insumos -->
+<section id="materiais-insumos" class="subpagina" style="display: none;">
+    <h2 id="titulo-materiais-insumos">Cadastro de Materiais e Insumos</h2>
+    <!--  *** AVISO ADICIONADO AQUI - MATERIAIS E INSUMOS *** -->
+    <hr class="aviso-separador">
+    <p class="aviso-unidades">
+        <strong>Atenção:</strong> Ao adicionar materiais, preencha as dimensões em <span style="color: #5a8289;">centímetros (cm)</span> para materiais do tipo "Área" e "Comprimento".  Para os tipos "Litro", "Quilo" e "Unidade", insira a quantidade diretamente nas unidades correspondentes (L, kg, un).
+    </p>
+    <hr class="aviso-separador">
+    <!--  *** FIM DO AVISO - MATERIAIS E INSUMOS *** -->
+    <form id="form-materiais-insumos">
+        <div class="form-group">
+            <label for="nome-material">Nome do Material:</label>
+            <input type="text" id="nome-material" name="nome-material" required>
+        </div>
+        <div class="form-group">
+            <label for="tipo-material">Tipo de Material:</label><br>
+            <label><input type="radio" name="tipo-material" value="comprimento" checked> Por Comprimento (Metro)</label>
+            <label><input type="radio" name="tipo-material" value="litro"> Por Litro</label>
+            <label><input type="radio" name="tipo-material" value="quilo"> Por Quilo</label>
+            <label><input type="radio" name="tipo-material" value="unidade"> Por Unidade</label>
+            <label><input type="radio" name="tipo-material" value="area"> Por Área (m²)</label>
+        </div>
+        <div class="form-group" id="campos-comprimento">
+            <label for="comprimento-cm">Comprimento (cm):</label>
+            <input type="number" id="comprimento-cm" name="comprimento-cm" step="0.01" value="100">
+        </div>
+        <div class="form-group" id="campos-litro" style="display: none;">
+            <label for="volume-ml">Volume (ml):</label>
+            <input type="number" id="volume-ml" name="volume-ml" step="0.01" value="1000">
+        </div>
+        <div class="form-group" id="campos-quilo" style="display: none;">
+            <label for="peso-g">Peso (g):</label>
+            <input type="number" id="peso-g" name="peso-g" step="0.01" value="1000">
+        </div>
+        <div class="form-group" id="campos-area" style="display: none;">
+            <label>Dimensões (cm):</label>
+            <div class="area-inputs">
+              <input type="number" id="largura-cm" name="largura-cm" step="0.01" value="100" placeholder="Largura">
+              <span>x</span>
+              <input type="number" id="altura-cm" name="altura-cm" step="0.01" value="100" placeholder="Altura">
+            </div>
+          </div>
+        <div class="form-group">
+            <label for="valor-total-material">Valor Total (R$):</label>
+            <input type="number" id="valor-total-material" name="valor-total-material" step="0.01" required>
+        </div>
+        <button type="button" onclick="cadastrarMaterialInsumo()">Cadastrar</button>
+    </form>
+    <h2>Materiais e Insumos Cadastrados</h2>
+    <div class="form-group">
+        <input type="text" id="busca-material" placeholder="Buscar material..." onkeyup="buscarMateriaisCadastrados()">
+    </div>
+    <table id="tabela-materiais-insumos" class="tabela-gerada">
         <thead>
             <tr>
-                <th>Número</th>
-                <th>Data do Pedido</th>
-                <th>Cliente</th>
-                <th>Total</th>
+                <th>Nome</th>
+                <th>Tipo</th>
+                <th>Dimensões/Quantidade Preenchidas</th>
+                <th>Custo Unitário (R$)</th>
                 <th>Ações</th>
             </tr>
         </thead>
         <tbody>
-            <!-- Linhas de pedidos serão adicionadas aqui -->
         </tbody>
     </table>
 </section>
-<!-- ==== FIM SEÇÃO - LISTA DE PEDIDOS ==== -->
 
-        <!-- ==== INÍCIO SEÇÃO - FORMULÁRIO DE EDIÇÃO DE PEDIDO ==== -->
-        <section id="form-edicao-pedido" class="pagina" style="display:none;">
-            <h2>Editar Pedido</h2>
-            <hr class="subtitulo">
-            <form id="edicaoPedido">
-                <!-- Campos do formulário (semelhantes ao formulário de orçamento) -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="dataPedidoEdicao">Data do Pedido:</label>
-                        <input type="date" id="dataPedidoEdicao" name="dataPedidoEdicao">
-                    </div>
-                    <div class="form-group">
-                        <label for="dataEntregaEdicao">Data da Entrega:</label>
-                        <input type="date" id="dataEntregaEdicao" name="dataEntregaEdicao">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="clienteEdicao">Cliente:</label>
-                        <input type="text" id="clienteEdicao" name="clienteEdicao" placeholder="Nome do Cliente">
-                    </div>
-                    <div class="form-group">
-                        <label for="enderecoEdicao">Endereço:</label>
-                        <input type="text" id="enderecoEdicao" name="enderecoEdicao" placeholder="Endereço do Cliente">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="temaEdicao">Tema:</label>
-                        <input type="text" id="temaEdicao" name="temaEdicao" placeholder="Tema do Pedido">
-                    </div>
-                    <div class="form-group">
-                        <label for="cidadeEdicao">Cidade:</label>
-                        <input type="text" id="cidadeEdicao" name="cidadeEdicao" placeholder="Cidade do Cliente">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="contatoEdicao">Contato:</label>
-                        <input type="text" id="contatoEdicao" name="contatoEdicao" placeholder="Telefone, Email, etc.">
-                    </div>
-                    <div class="form-group">
-                        <label for="coresEdicao">Cores:</label>
-                        <input type="text" id="coresEdicao" name="coresEdicao" placeholder="Cores Preferidas">
-                    </div>
-                </div>
-                <hr class="tabela">
-                <div class="table-responsive">
-                    <table id="tabelaProdutosEdicao">
-                        <thead>
-                            <tr>
-                                <th>Quantidade</th>
-                                <th>Descrição do Produto</th>
-                                <th>Valor Unit.</th>
-                                <th>Valor Total</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Linhas de produtos serão adicionadas aqui -->
-                        </tbody>
-                    </table>
-                    <button type="button" id="btnAddProdutoEdicao">Adicionar Produto</button>
-                </div>
-                <hr class="final-tabela">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Pagamento:</label>
-                        <label><input type="checkbox" name="pagamentoEdicao" value="pix"> PIX</label>
-                        <label><input type="checkbox" name="pagamentoEdicao" value="dinheiro"> Dinheiro</label>
-                        <label><input type="checkbox" name="pagamentoEdicao" value="cartaoCredito"> Cartão de Crédito</label>
-                        <label><input type="checkbox" name="pagamentoEdicao" value="cartaoDebito"> Cartão de Débito</label>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="valorFreteEdicao">Valor do Frete (R$):</label>
-                        <input type="text" id="valorFreteEdicao" name="valorFreteEdicao" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">
-                    </div>
-                    <div class="form-group">
-                        <label for="valorPedidoEdicao">Valor do Pedido (R$):</label>
-                        <input type="text" id="valorPedidoEdicao" name="valorPedidoEdicao" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarTotaisEdicao()">
-                    </div>
-                </div>
-                <div class="form-row valores-pedido">
-                    <div class="form-group">
-                        <label for="custoMaoDeObraEdicao">Custo de mão de obra (R$):</label>
-                        <input type="text" id="custoMaoDeObraEdicao" name="custoMaoDeObraEdicao" value="0,00" oninput="formatarEntradaMoeda(this)">
-                    </div>
-                    <div class="form-group">
-                        <label for="margemLucroEdicao">Margem de Lucro (R$):</label>
-                        <input type="text" id="margemLucroEdicao" name="margemLucroEdicao" value="0,00" oninput="formatarEntradaMoeda(this)">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="totalEdicao">Total (R$):</label>
-                        <input type="text" id="totalEdicao" name="totalEdicao" value="0,00" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="entradaEdicao">Entrada (R$):</label>
-                        <input type="text" id="entradaEdicao" name="entradaEdicao" value="0,00" oninput="formatarEntradaMoeda(this)" onblur="atualizarRestanteEdicao()">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="restanteEdicao">Restante (R$):</label>
-                        <input type="text" id="restanteEdicao" name="restanteEdicao" value="0,00" readonly>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="observacoesEdicao">Observações:</label>
-                    <textarea id="observacoesEdicao" name="observacoesEdicao" rows="4"></textarea>
-                </div>
-                <button type="button" id="btnSalvarPedidoEdicao">Salvar Alterações</button>
-            </form>
-        </section>
-        <!-- ==== FIM SEÇÃO - FORMULÁRIO DE EDIÇÃO DE PEDIDO ==== -->
+<!-- Seção Mão de Obra -->
+<section id="mao-de-obra" class="subpagina" style="display: none;">
+    <h2 id="titulo-mao-de-obra">Informações sobre custo de mão de obra</h2>
+    <form id="form-mao-de-obra">
+        <div class="form-group">
+            <label for="salario-receber">Salário a receber (R$):</label>
+            <input type="number" id="salario-receber" name="salario-receber" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="horas-trabalhadas">Horas trabalhadas por mês:</label>
+            <input type="number" id="horas-trabalhadas" name="horas-trabalhadas" required value="220">
+        </div>
+        <div class="form-group">
+            <label for="valor-hora">Valor da hora trabalhada (R$):</label>
+            <input type="number" id="valor-hora" name="valor-hora" step="0.01" readonly>
+        </div>
+        <button type="button" onclick="salvarMaoDeObra()" id='btn-salvar-mao-de-obra'>Salvar</button>
+        <button type="button" onclick="editarMaoDeObra()" style="display:none;" id='btn-editar-mao-de-obra'>Editar</button>
 
-        <!-- ==== INÍCIO SEÇÃO - RELATÓRIO ==== -->
-        <section id="relatorio" class="pagina" style="display:none;">
-            <h2>Relatório de Pedidos</h2>
-            <div class="filtro-data">
-                <label for="filtroDataInicio">Início:</label>
-                <input type="date" id="filtroDataInicio">
-                <label for="filtroDataFim">Fim:</label>
-                <input type="date" id="filtroDataFim">
-                <button type="button" onclick="filtrarPedidosRelatorio()">Gerar Relatório</button>
-            </div>
-            <div id="relatorio-conteudo">
-                <!-- Tabela de relatório será inserida aqui -->
-            </div>
-            <button type="button" onclick="gerarRelatorioXLSX()">Exportar Relatório (XLSX)</button>
-        </section>
-        <!-- ==== FIM SEÇÃO - RELATÓRIO ==== -->
+        <hr class="linha-separadora">
 
-        <!-- ==== REMOVIDA A SEÇÃO - IMPORTAR EXPORTAR ==== -->
+        <h3 id="titulo-ferias-13o">Informações sobre custo de férias e 13º Salário</h3>
+        <div class="form-group">
+            <label>Deseja incluir o custo de férias e 13º salário?</label><br>
+            <label><input type="radio" id="incluir-ferias-13o-sim" name="incluir-ferias-13o" value="sim"> Sim</label>
+            <label><input type="radio" id="incluir-ferias-13o-nao" name="incluir-ferias-13o" value="nao" checked> Não</label>
+        </div>
 
-                <!-- ==== INÍCIO SEÇÃO - VISUALIZAR ORÇAMENTO ==== -->
-        <section id="visualizar-orcamento" class="pagina" style="display:none;">
-            <div class="header-orcamento">
-                <img src="./logo_perola_rara.png" alt="Logo Pérola Rara" id="logo-orcamento">
-                <h1>Pérola Rara</h1>
-                <p class="contato-empresa">(65) 99250-3151 | @perolararafraldapersonalizada</p>
-            </div>
-            <hr class="titulo">
-            <div id="conteudo-orcamento">
-                <!-- O conteúdo do orçamento será inserido aqui -->
-            </div>
-        </section>
-        <!-- ==== FIM SEÇÃO - VISUALIZAR ORÇAMENTO ==== -->
-        </div><!-- Fechamento da div appContent -->
+        <div class="form-group">
+            <label for="custo-ferias-13o">Custo de férias e 13º salário por hora trabalhada (R$):</label>
+            <input type="number" id="custo-ferias-13o" name="custo-ferias-13o" step="0.01" readonly value="0.00">
+        </div>
+
+    </form>
+</section>
+
+<!-- Seção Custos Indiretos -->
+<section id="custos-indiretos" class="subpagina" style="display: none;">
+   <h2 id="titulo-custos-indiretos">Cadastro de Custos Indiretos</h2>
+    <p style="text-align: center;">Custos indiretos são considerados para o período de um mês.</p>
+
+    <ul id="lista-custos-indiretos">
+        </ul>
+
+    <button type="button" onclick="adicionarNovoCustoIndireto()">+ Adicionar Custo Indireto</button>
+
+    <h2>Custos Indiretos Cadastrados</h2>
+    <div class="form-group">
+        <input type="text" id="busca-custo-indireto" placeholder="Buscar custo indireto..." onkeyup="buscarCustosIndiretosCadastrados()">
     </div>
+    <table id="tabela-custos-indiretos" class="tabela-gerada">
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Valor Mensal (R$)</th>
+                <th>Valor por hora trabalhada (R$)</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</section>
+
+
+<!-- Seção Produtos Cadastrados (MODIFICADA) -->
+<section id="produtos-cadastrados" class="subpagina" style="display: none;">
+    <h2 id="titulo-novo-produto">Cadastro de Novo Produto</h2>
+    <form id="form-produtos-cadastrados">
+        <div class="form-group">
+            <label for="nome-produto">Nome do Produto:</label>
+            <input type="text" id="nome-produto" name="nome-produto" required>
+        </div>
+        <div class="form-group">
+            <label for="pesquisa-material">Adicionar Material/Insumo:</label>
+            <input type="text" id="pesquisa-material" name="pesquisa-material" placeholder="Pesquisar...">
+            <div id="resultados-pesquisa"></div>
+        </div>
+
+        <!--  *** AVISO ADICIONADO AQUI *** -->
+        <hr class="aviso-separador">
+        <p class="aviso-unidades">
+            <strong>Atenção:</strong> Ao adicionar materiais, preencha as dimensões em <span style="color: #5a8289;">centímetros (cm)</span> para materiais do tipo "Área" e "Comprimento".  Para os tipos "Litro", "Quilo" e "Unidade", insira a quantidade diretamente nas unidades correspondentes (L, kg, un).
+        </p>
+        <hr class="aviso-separador">
+        <!--  *** FIM DO AVISO *** -->
+
+        <table id="tabela-materiais-produto" class="tabela-gerada">
+            <thead>
+                <tr>
+                    <th>Material/Insumo</th>
+                    <th>Tipo</th>
+                    <th>Custo Unitário</th>
+                    <th>Dimensões</th>
+                    <th>Quantidade</th>
+                    <th>Custo Total</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <button type="button" onclick="cadastrarProduto()">Cadastrar Produto</button>
+    </form>
+    <h2>Produtos Cadastrados</h2>
+    <div class="form-group">
+        <input type="text" id="busca-produto" placeholder="Buscar produto..." onkeyup="buscarProdutosCadastrados()">
+    </div>
+    <table id="tabela-produtos" class="tabela-gerada">
+        <thead>
+            <tr>
+                <th>Nome do Produto</th>
+                <th>Materiais Utilizados</th>
+                <th>Custos/Dimensões do Produto</th>
+                <th>Custo Total dos Materiais (R$)</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Os produtos cadastrados serão inseridos aqui -->
+        </tbody>
+    </table>
+</section>
+
+<!-- Seção Cálculo da Precificação -->
+<section id="calculo-precificacao" class="subpagina">
+    <h2>Cálculo da Precificação</h2>
+
+    <!-- **NOVO CAMPO: Nome do Cliente** -->
+    <div class="form-group">
+        <label for="nome-cliente">Nome do Cliente (Opcional):</label>
+        <input type="text" id="nome-cliente" name="nome-cliente" placeholder="Insira o nome do cliente">
+    </div>
+    <!-- **FIM DO NOVO CAMPO** -->
+
+    <div class="calculation-container">
+        <div class="section">
+            <label for="produto-pesquisa">Pesquisar Produto:</label>
+            <input type="text" id="produto-pesquisa" oninput="buscarProdutosAutocomplete()" placeholder="Digite o nome do produto...">
+            <div id="produto-resultados" class="hidden"></div>
+            <span class="bracket">}</span>
+            <span id="custo-produto">R$ 0,00</span>
+        </div>
+
+        <!-- Lista de Materiais do Produto -->
+        <div id="detalhes-produto" style="display: none;">
+            <h3>Materiais do Produto:</h3>
+            <ul id="lista-materiais-produto">
+                <!-- Os materiais serão listados aqui -->
+            </ul>
+        </div>
+
+        <div class="section">
+            <label for="horas-produto">Horas para Concluir o Produto:</label>
+            <input type="number" id="horas-produto" value="1" min="1" onchange="calcularCustos()">
+            <span class="bracket">}</span>
+            <!-- Detalhes da Mão de Obra (Agrupados) -->
+            <div id="detalhes-mao-de-obra">
+              <div class="custo-detalhe">
+                <span>Custo Mão de Obra:</span>
+                <span id="custo-mao-de-obra-detalhe">R$ 0,00</span>
+              </div>
+              <div class="custo-detalhe">
+                <span>Custo 13º e Férias:</span>
+                <span id="custo-ferias-13o-detalhe">R$ 0,00</span>
+               </div>
+                <div class="custo-detalhe">
+                    <span><b>Total Mão de Obra:</b></span>
+                    <span id="total-mao-de-obra"><b>R$ 0,00</b></span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="section">
+            <label>Custos Indiretos (por hora):</label>
+             <span class="bracket">}</span>
+            <span id="custo-indireto">R$ 0,00</span>
+         </div>
+
+        <!-- Lista de Custos Indiretos Detalhados -->
+        <div id="detalhes-custos-indiretos">
+            <h3>Custos Indiretos Detalhados:</h3>
+            <ul id="lista-custos-indiretos-detalhes">
+                <!-- Os custos indiretos detalhados serão listados aqui -->
+            </ul>
+        </div>
+
+
+        <hr class="subtotal-line">
+
+        <div class="section subtotal">
+            <span>Subtotal:</span>
+            <span id="subtotal">R$ 0,00</span>
+        </div>
+
+        <!-- Valor da Margem de Lucro -->
+        <div class="section">
+            <span>Margem de Lucro:</span>
+            <span id="margem-lucro-valor">R$ 0,00</span>
+        </div>
+
+        <div class="section">
+            <label for="margem-lucro-final">Margem de Lucro Desejada (%):</label>
+            <input type="number" id="margem-lucro-final" name="margem-lucro-final" step="0.01" required value="0" onchange="calcularPrecoVendaFinal()">
+        </div>
+
+           <div class="section total">
+            <span>Total (com Margem de Lucro):</span>
+            <span id="total-final">R$ 0,00</span>
+        </div>
+
+        <hr class="total-line">
+
+		<!-- Taxa de Compra a Crédito -->
+		<div class="section">
+			<span>Taxa de Compra a Crédito:</span>
+			<span id="taxa-credito-valor">R$ 0,00</span>
+		</div>
+		<div class="section">
+		    <label>Incluir taxa de crédito?</label>
+			<label><input type="radio" id="incluir-taxa-credito-sim" name="incluir-taxa-credito" value="sim"> Sim</label>
+            <label><input type="radio" id="incluir-taxa-credito-nao" name="incluir-taxa-credito" value="nao" checked> Não</label>
+			<input type="number" id="taxa-credito-percentual"  step="0.01" value = "6.00" style="width:60px; margin-left: 5px;">%
+			<button type="button" onclick="salvarTaxaCredito()">Salvar</button>
+		</div>
+
+		<div class="section total">
+			<span>Total Final (com Taxas):</span>
+			<span id="total-final-com-taxas">R$ 0,00</span>
+		</div>
+    </div>
+
+    <!-- **NOVO BOTÃO: Gerar Nota de Precificação** -->
+    <div style="text-align: center; margin-top: 20px;">
+        <button type="button" onclick="gerarNotaPrecificacao()">Gerar Nota de Precificação</button>
+    </div>
+    <!-- **FIM DO NOVO BOTÃO** -->
+
+</section>
+<!-- Fim da Seção Cálculo da Precificação -->
+
+<!-- Seção Precificações Geradas -->
+<section id="precificacoes-geradas" class="subpagina" style="display: none;">
+    <h2>Precificações Geradas</h2>
+
+    <div class="form-group">
+        <input type="text" id="busca-precificacao" placeholder="Buscar por número, ano ou cliente..." onkeyup="buscarPrecificacoesGeradas()">
+    </div>
+
+    <table id="tabela-precificacoes-geradas" class="tabela-gerada">
+        <thead>
+            <tr>
+                <th>Número e Ano</th>
+                <th>Nome do Cliente</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Precificações geradas serão listadas aqui -->
+        </tbody>
+    </table>
+
+    <!-- *** CONTAINER PARA DETALHE DA PRECIFICAÇÃO (ADICIONADO) *** -->
+    <div id="detalhe-precificacao-container" style="display: none; margin-top: 20px;">
+        <!-- A tabela detalhada da precificação será inserida aqui pelo Javascript -->
+    </div>
+    <!-- *** FIM DO CONTAINER *** -->
+
+</section>
+<!-- Fim da Seção Precificações Geradas -->
+
+<script type="module" src="precificacao.js"></script> <!-- MUITO IMPORTANTE: type="module" -->
+
 </body>
 </html>
