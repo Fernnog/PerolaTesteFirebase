@@ -1,37 +1,36 @@
+/* Reset básico e fontes */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+* { /* Reset global para remover margens e paddings padrão */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* Importante para o modelo de caixa */
+}
 
 body {
     font-family: 'Roboto', Arial, sans-serif;
-    background-color: #ffffff;
-    color: #333;
-    margin: 0;
-    padding: 0;
+    background-color: #ffffff; /* Fundo branco */
+    color: #333; /* Cor do texto principal */
+    line-height: 1.6; /* Espaçamento entre linhas para melhor legibilidade */
 }
 
+/* Container principal */
 .container {
     width: 90%;
-    margin: auto;
+    max-width: 1200px; /* Largura máxima para telas grandes */
+    margin: auto; /* Centraliza o container */
     padding: 20px;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px; /* Bordas arredondadas */
 }
 
-hr.titulo {
-    border: 2px solid #7aa2a9;
-    margin-bottom: 10px;
-}
-
-hr.menu {
-    border: 1px solid #7aa2a9;
-    margin-top: 10px;
-    margin-bottom: 20px;
-}
-
+/* Cabeçalho */
 header {
     text-align: center;
     padding: 20px 0;
     background-color: #ffffff;
-    color: #7aa2a9;
+    color: #7aa2a9; /* Cor do texto do cabeçalho */
     margin-bottom: 20px;
 }
 
@@ -48,24 +47,45 @@ header {
     margin: 0 auto;
 }
 
-h1, h2 {
+h1, h2, h3 { /* Estilo consistente para títulos */
     color: #7aa2a9;
     text-align: center;
+    margin-bottom: 0.5em; /* Espaço abaixo dos títulos */
 }
 
+/* Separadores */
+hr.titulo {
+    border: 2px solid #7aa2a9;
+    margin-bottom: 10px;
+}
+
+hr.menu {
+    border: 1px solid #7aa2a9;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+hr.subtotal-line,
+hr.total-line {  /* Estilo consistente para linhas de subtotal/total */
+  width: 100%;
+  border-top: 2px solid #7aa2a9;
+  margin: 15px 0;
+}
+
+/* Menu de navegação */
 nav ul {
     list-style: none;
     padding: 0;
     margin: 20px 0;
     text-align: center;
-    display: flex; /* Usa flexbox para alinhar */
-    justify-content: center; /* Centraliza horizontalmente */
-    align-items: center; /* Centraliza verticalmente (se necessário) */
-    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* Quebra de linha em telas menores */
 }
 
 nav ul li {
-    display: inline-block;
+    display: inline-block; /* Itens do menu lado a lado */
     margin: 0 10px;
     position: relative;
 }
@@ -73,33 +93,32 @@ nav ul li {
 nav ul li a {
     color: #7aa2a9;
     text-decoration: none;
-    display: block;
+    display: block; /* Transforma o link em bloco */
     padding: 10px;
-    transition: background-color 0.3s ease; /* Adiciona transição suave no hover */
+    transition: background-color 0.3s ease;
+    border-radius: 5px; /* Bordas levemente arredondadas nos links */
 }
 
-nav ul li:hover > a { /* Aplica o hover apenas ao link do item pai */
+nav ul li a:hover {
     background-color: #e8d7d4;
 }
 
-
+/* Subpáginas (seções ocultas) */
 .subpagina {
     margin-top: 20px;
+    /* Removido display: none;  O controle agora é feito via JavaScript, após o login */
 }
 
-/* Estilo unificado para h2 e h3 dentro de subpagina */
 .subpagina h2, .subpagina h3 {
-    color: #7aa2a9;
-    text-align: center;
     margin-bottom: 20px;
-    font-size: 1.5em; /* ou outro tamanho que você achar adequado */
+    font-size: 1.5em;
 }
 
-/* Espaçamento superior aumentado para o h3 específico */
 #titulo-ferias-13o {
-   margin-top: 30px; /* Ajuste este valor conforme necessário */
+   margin-top: 30px;
 }
 
+/* Formulários */
 .subpagina form {
     width: 95%;
     margin: auto;
@@ -116,19 +135,33 @@ label {
     font-weight: bold;
 }
 
+/* Inputs de texto e número */
 input[type="text"],
 input[type="number"],
+input[type="email"], /* Adicionado para o campo de email */
+input[type="password"], /* Adicionado para o campo de senha */
 select,
 textarea {
-    width: calc(100% - 22px);
+    width: calc(100% - 22px); /* Considera o padding */
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 20px;
     font-size: 16px;
     background-color: #dfb6b0;
     color: #fff;
+    margin-bottom: 5px; /* Espaço abaixo do input */
+}
+/* Placeholder dos inputs */
+input[type="text"]::placeholder,
+input[type="number"]::placeholder,
+input[type="email"]::placeholder, /* Placeholder para email */
+input[type="password"]::placeholder, /* Placeholder para senha */
+select::placeholder,
+textarea::placeholder {
+    color: #ddd; /* Cor mais clara para o placeholder */
 }
 
+/* Botões */
 button {
     background-color: #7aa2a9;
     color: white;
@@ -138,12 +171,14 @@ button {
     font-size: 16px;
     cursor: pointer;
     margin-top: 10px;
+    transition: background-color 0.3s ease; /* Transição suave no hover */
 }
 
 button:hover {
     background-color: #5a8289;
 }
 
+/* Tabelas */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -156,17 +191,16 @@ th, td {
     border: 1px solid #ccc;
 }
 
-/* Títulos das tabelas (cabeçalho) */
 th {
-    background-color: #cae6e7; /* Cor azul para os títulos */
-    color: #333; /* Cor do texto mais escura para melhor contraste */
+    background-color: #cae6e7;
+    color: #333;
 }
 
 td {
-    background-color: #fff; /* Fundo branco para as células de dados */
+    background-color: #fff;
 }
 
-/* Estilos para tabelas dinâmicas */
+/* Tabelas geradas dinamicamente */
 .tabela-gerada {
     width: 100%;
     border-collapse: collapse;
@@ -179,18 +213,16 @@ td {
     border: 1px solid #ccc;
 }
 
-/* Títulos das tabelas dinâmicas (cabeçalho) */
 .tabela-gerada th {
-    background-color: #cae6e7; /* Cor azul para os títulos */
-    color: #333; /* Cor do texto mais escura para melhor contraste */
+    background-color: #cae6e7;
+    color: #333;
 }
 
-/* Itens cadastrados nas tabelas dinâmicas */
 .tabela-gerada td {
-    background-color: #f8f8f8; /* Fundo cinza claro para os itens cadastrados */
+    background-color: #f8f8f8;
 }
-/* fim - Estilos para tabelas dinâmicas */
 
+/* Media query para responsividade (tabelas em telas pequenas) */
 @media (max-width: 768px) {
     .container {
         width: 98%;
@@ -202,18 +234,19 @@ td {
     }
 
     table {
-        display: block;
+        display: block; /* Faz a tabela rolar horizontalmente */
         overflow-x: auto;
     }
 }
 
-/* Estilos para a pesquisa de materiais */
+/* Autocomplete (resultados da pesquisa) */
 #resultados-pesquisa {
     position: absolute;
     width: 92.5%;
     background-color: #fff;
     border: 1px solid #ccc;
-    z-index: 10;
+    z-index: 10; /* Garante que fique acima de outros elementos */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra sutil */
 }
 
 #resultados-pesquisa div {
@@ -226,7 +259,7 @@ td {
     background-color: #f0f0f0;
 }
 
-/* Estilos para a tabela de materiais do produto (AJUSTADO) */
+/* Tabela de materiais do produto */
 #tabela-materiais-produto {
     margin-bottom: 20px;
 }
@@ -238,60 +271,58 @@ td {
     text-align: left;
 }
 
-/*Para a tabela de produtos, ajustamos para a coluna de dimensões genérica */
 #tabela-materiais-produto th:nth-child(4),
 #tabela-materiais-produto td:nth-child(4) {
-    width: auto; /* Removemos a largura fixa, deixamos automático */
+    width: auto;
 }
 
-#tabela-materiais-produto th:nth-child(5), /* Coluna quantidade */
+#tabela-materiais-produto th:nth-child(5),
 #tabela-materiais-produto td:nth-child(5) {
-    width: 100px; /* Ajuste conforme necessário */
+    width: 100px;
 }
 
-/* --- ADICIONADO: Estilos para inputs de área --- */
+/* Inputs de dimensões */
 .dimensoes-input {
     width: 60px !important;
     margin-right: 5px !important;
 }
-.dimensoes-span{
+
+.dimensoes-span {
     font-weight: bold;
     margin-left: 5px;
 }
+
 .quantidade-input {
-  width: 60px !important; /* Ou ajuste conforme necessário */
-  background-color: #cae6e7; /* Tom azulado */
-  color: #333; /* Texto escuro para contraste */
-  font-weight: bold; /* Negrito para destacar */
+  width: 60px !important;
+  background-color: #cae6e7;
+  color: #333;
+  font-weight: bold;
 }
 
-
-/* --- ADICIONADO: Estilo para a unidade de medida --- */
 .unidade-medida {
     margin-left: 5px;
     font-size: 0.9em;
     color: #555;
 }
 
-/* Estilo para o campo valor-hora (e agora custo-ferias-13o) */
+/* Campos readonly */
 #valor-hora, #custo-ferias-13o {
     background-color: #cae6e7;
     color: #333;
     font-weight: bold;
 }
 
-/* Linha separadora delicada */
+/* Linha separadora */
 .linha-separadora {
     border: none;
-    border-top: 1px solid #7aa2a9; /* Mesma cor da borda do título */
-    margin: 20px 0; /* Espaçamento acima e abaixo */
-    width: 50%; /* Ajuste a largura conforme necessário */
-    margin-left: auto;  /* Centraliza a linha */
-    margin-right: auto; /* Centraliza a linha */
-
+    border-top: 1px solid #7aa2a9;
+    margin: 20px 0;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Estilos para a lista de custos indiretos */
+/* Lista de custos indiretos */
 #lista-custos-indiretos {
     list-style: none;
     padding: 0;
@@ -318,7 +349,7 @@ td {
 }
 
 #lista-custos-indiretos li input[type="number"] {
-    width: 100px; /* Ajuste conforme necessário */
+    width: 100px;
     margin-right: 10px;
     background-color: #dfb6b0;
     color: #fff;
@@ -328,11 +359,11 @@ td {
     margin-left: 5px;
 }
 
-/* Estilos para a seção de cálculo da precificação */
+/* Seção de cálculo da precificação */
 .calculation-container {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* Alinha os itens à esquerda */
+    align-items: flex-start;
     width: 80%;
     margin: 0 auto;
 }
@@ -341,7 +372,7 @@ td {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
-  width: 100%; /* Ocupa toda a largura */
+  width: 100%;
 }
 
 .bracket {
@@ -364,18 +395,6 @@ td {
     color: #fff;
 }
 
-.subtotal-line {
-  width: 100%; /* Ajustado para a largura da .section */
-  border-top: 2px solid #7aa2a9;
-  margin: 15px 0;
-}
-
-/* --- ADICIONADO: Linha para o total --- */
-.total-line {
-  width: 100%;
-  border-top: 2px solid #7aa2a9;
-  margin: 15px 0;
-}
 
 .subtotal, .total{
   font-weight: bold;
@@ -384,17 +403,17 @@ td {
   justify-content: flex-end; /*Alinhar a direita*/
   display: flex;
 }
-/*fim -  Estilos para a seção de cálculo da precificação*/
 
-/* Estilos para o autocomplete */
+/* Autocomplete (resultados da pesquisa de produto) */
 #produto-resultados {
     position: absolute;
-    z-index: 10; /* Para ficar acima de outros elementos */
+    z-index: 10;
     border: 1px solid #ccc;
     background-color: #fff;
-    max-height: 200px; /* Altura máxima com scroll */
+    max-height: 200px;
     overflow-y: auto;
-    width: calc(80% - 20px); /*Mesma largura com base no .calculation-container*/
+    width: calc(80% - 20px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra */
 }
 
 #produto-resultados div {
@@ -407,25 +426,24 @@ td {
     background-color: #f0f0f0;
 }
 
-/*Para esconder o autocomplete quando não utilizado*/
 #produto-resultados.hidden{
   display: none;
 }
 
 #produto-pesquisa{
-    width: calc(100% - 22px); /*Para considerar o padding*/
+    width: calc(100% - 22px);
 }
 
-/* Estilos para os detalhes (listas/tabelas) */
+/* Detalhes (listas/tabelas) */
 #detalhes-produto,
 #detalhes-custos-indiretos {
     margin-bottom: 20px;
-    width: 100%; /* Para ocupar a largura total */
+    width: 100%;
 }
 
 #lista-materiais-produto,
 #lista-custos-indiretos-detalhes {
-    list-style: none; /* Sem marcadores */
+    list-style: none;
     padding: 0;
     margin: 0;
     width: 100%;
@@ -439,69 +457,69 @@ td {
 
 #lista-materiais-produto li:last-child,
 #lista-custos-indiretos-detalhes li:last-child {
-    border-bottom: none; /* Remove a borda do último item */
+    border-bottom: none;
 }
 
-/* Estilos para os detalhes da mão de obra */
+/* Detalhes da mão de obra */
 #detalhes-mao-de-obra {
-  display: flex;         /* Flexbox para alinhar os itens */
-  flex-direction: column; /* Organiza os itens verticalmente */
-  align-items: flex-start; /* Alinha os itens à esquerda */
-  margin-bottom: 15px;      /* Espaçamento inferior */
-  margin-left: 50px;    /*Recuo a esquerda*/
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  margin-left: 50px;
 }
 
 .custo-detalhe {
-  display: flex;         /* Flexbox para cada linha */
-  justify-content: space-between; /* Espaço entre os elementos */
-  width: 280px;          /* Largura para alinhar os valores */
-  margin-bottom: 5px;     /* Espaçamento entre as linhas */
+  display: flex;
+  justify-content: space-between;
+  width: 280px;
+  margin-bottom: 5px;
 }
 
 .custo-detalhe span:first-child {
-  margin-right: 10px; /*Espaço entre o nome e os : */
+  margin-right: 10px;
 }
 
-/* Estilo para inputs de área (melhor legibilidade) */
+/* Inputs de área */
 .area-inputs {
     display: flex;
-    align-items: center; /* Alinha verticalmente */
+    align-items: center;
 }
 
 .area-inputs input {
     margin-right: 5px;
-    width: 70px; /* Largura controlada */
+    width: 70px;
 }
 .area-inputs span {
-  font-size: 1.2em; /* Aumenta um pouco o 'x' */
-  font-weight: bold; /* Deixa em negrito para destacar*/
-  margin-right: 5px; /* Dá um pequeno espaço à direita */
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-right: 5px;
 }
 
-/* Estilos para o aviso de unidades */
+/* Avisos */
 .aviso-separador {
   border: none;
-  border-top: 1px dashed #7aa2a9;  /* Linha tracejada, cor da paleta */
-  margin: 10px 0; /* Espaçamento acima e abaixo */
-  width: 80%;    /* Largura */
-  margin-left: auto;  /* Centraliza */
-  margin-right: auto; /* Centraliza */
-}
-
-.aviso-unidades {
-  text-align: center;
-  font-size: 0.9em;      /* Tamanho da fonte um pouco menor */
-  color: #555;         /* Cor do texto mais suave */
-  margin-bottom: 20px;    /* Espaçamento abaixo do aviso */
+  border-top: 1px dashed #7aa2a9;
+  margin: 10px 0;
   width: 80%;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* --- Painel de Backup (precificacao.html) --- */
+.aviso-unidades {
+  text-align: center;
+  font-size: 0.9em;
+  color: #555;
+  margin-bottom: 20px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Painel de Backup/Status */
 .top-bar {
     display: flex;
-    justify-content: flex-end; /* Alinha à direita */
+    justify-content: flex-end;
     padding: 10px 20px;
 }
 
@@ -512,53 +530,129 @@ td {
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: #f5f5f5;
+    transition: background-color 0.3s ease; /*Transição*/
 }
 
-/* --- Estilos para a tabela de precificação detalhada--- */
+/* Tabela de precificação detalhada */
 .tabela-precificacao-detalhada {
-    width: 95%; /* Largura um pouco menor, com margem nas laterais */
+    width: 95%;
     border-collapse: collapse;
-    margin: 20px auto; /* Centraliza e adiciona margem */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Sombra mais suave e elegante */
-    border-radius: 8px; /* Bordas um pouco arredondadas */
-    overflow: hidden; /* Garante que o border-radius funcione corretamente com o fundo */
-    font-family: 'Roboto', Arial, sans-serif; /* Garante a mesma fonte da página */
-    border-spacing: 0; /* Remove espaçamento entre bordas */
+    margin: 20px auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: 'Roboto', Arial, sans-serif;
+    border-spacing: 0;
 }
 
 .tabela-precificacao-detalhada th,
 .tabela-precificacao-detalhada td {
-    border: 1px solid #ddd; /* Borda mais clara e suave */
-    padding: 10px; /* Padding um pouco maior */
+    border: 1px solid #ddd;
+    padding: 10px;
     text-align: left;
-    font-size: 0.95em; /* Tamanho da fonte ligeiramente menor */
+    font-size: 0.95em;
 }
 
 .tabela-precificacao-detalhada th {
-    background-color: #7aa2a9; /* Cor de cabeçalho - Paleta de Cores (Tom mais escuro) */
-    color: white; /* Texto branco para contraste */
+    background-color: #7aa2a9;
+    color: white;
     font-weight: bold;
     text-align: center;
-    text-transform: uppercase; /* Cabeçalhos em maiúsculo (opcional) */
+    text-transform: uppercase;
     padding-top: 12px;
-    padding-bottom: 12px; /* Padding vertical maior para os cabeçalhos */
+    padding-bottom: 12px;
 }
 
 .tabela-precificacao-detalhada td:first-child {
     font-weight: bold;
-    color: #555; /* Cor um pouco mais escura para os nomes dos campos */
-    width: 40%; /* Ajuste a largura da primeira coluna */
+    color: #555;
+    width: 40%;
 }
 
 .tabela-precificacao-detalhada td:nth-child(2) {
-    width: 60%; /* Ajuste a largura da segunda coluna */
+    width: 60%;
 }
 
-.tabela-precificacao-detalhada tbody tr:nth-child(even) { /* Linhas pares agora */
-    background-color: #f9f9f9; /* Fundo cinza muito claro para linhas pares */
+.tabela-precificacao-detalhada tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
 .tabela-precificacao-detalhada tbody tr:hover {
-    background-color: #f2f2f2; /* Hover sutilmente mais escuro */
+    background-color: #f2f2f2;
 }
-/* --- FIM - Estilos para tabela de precificação detalhada --- */
+
+/* Mensagens de Status (Adicionado) */
+#mensagens-status {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 15px; /* Espaço abaixo da mensagem */
+    border-radius: 5px; /* Bordas arredondadas */
+    display: none; /* Oculta por padrão */
+}
+
+/* Cores para os tipos de mensagem (você pode customizar) */
+#mensagens-status.sucesso {
+    background-color: #d4edda; /* Verde claro */
+    border: 1px solid #c3e6cb;
+    color: #155724; /* Verde escuro */
+}
+
+#mensagens-status.erro {
+    background-color: #f8d7da; /* Vermelho claro */
+    border: 1px solid #f5c6cb;
+    color: #721c24; /* Vermelho escuro */
+}
+#mensagens-status.aviso {
+    background-color: #fff3cd; /* Amarelo claro */
+    border: 1px solid #ffeeba;
+    color: #856404; /* Amarelo escuro */
+}
+
+/* --- Estilos para a Seção de Autenticação --- */
+
+#auth-container {
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px; /* Espaço entre a autenticação e o resto do conteúdo */
+    background-color: #f8f8f8; /* Fundo ligeiramente diferente */
+    width: 95%; /* Ajustado para a largura de .subpagina form */
+    margin-left: auto;  /* Centraliza a linha */
+    margin-right: auto; /* Centraliza a linha */
+}
+
+#auth-container h2 {
+    margin-bottom: 15px; /* Espaço abaixo do título */
+    color: #7aa2a9;
+}
+
+#auth-container form {
+    display: flex;
+    flex-direction: column; /* Inputs e botões em coluna */
+    align-items: center; /* Centraliza horizontalmente */
+}
+
+#auth-container input[type="email"],
+#auth-container input[type="password"] {
+    margin-bottom: 10px;
+    width: 100%; /* Ocupa toda a largura disponível */
+    max-width: 400px; /* Limita a largura em telas grandes */
+     background-color: #fff; /*Para o auth ficar com fundo branco*/
+    color: #333;
+}
+
+#auth-container button {
+    width: auto; /* Largura automática para os botões */
+    padding: 10px 15px; /* Padding ligeiramente menor */
+    margin-top: 5px; /* Espaço acima do botão */
+}
+
+#auth-message {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-weight: bold; /* Destaca a mensagem */
+}
+
+#toggle-signup{
+  margin-top: 10px;
+}
