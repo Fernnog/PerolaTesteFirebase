@@ -4,70 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pérola Rara - Precificação</title>
-    <link rel="stylesheet" href="precificacao.css">
+    <link rel="stylesheet" href="precificacao.css">  <!-- CSS Local -->
     <!-- Adicionando a biblioteca SheetJS (xlsx) -  NECESSÁRIO PARA FUTURA EXPORTAÇÃO DE RELATÓRIOS -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <!--  SDKs do Firebase (Modular - using 9.x.x for CDN links) -->
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script> <!-- Auth SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-analytics.js"></script>
+    <!--  SDKs do Firebase (Modular - using 9.22.2 for CDN links) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script> <!-- Added firebase-auth SDK -->
 </head>
 <body>
 
-<header>
-    <div class="top-bar">
-        <div id="ultimoBackup" class="ultimo-backup"></div> <!-- Mantido para mostrar status -->
+<div id="auth-container" class="auth-container">
+    <div class="auth-form">
+        <h2>Autenticação</h2>
+        <div class="form-group">
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" placeholder="Digite seu email">
+        </div>
+        <div class="form-group">
+            <label for="password">Senha:</label><br>
+            <input type="password" id="password" name="password" placeholder="Digite sua senha">
+        </div>
+        <div class="auth-buttons">
+            <button type="button" id="registerBtn">Registrar</button>
+            <button type="button" id="loginBtn">Entrar</button>
+        </div>
+        <button type="button" id="forgotPasswordBtn" class="forgot-password">Esqueci minha senha?</button>
+        <p id="auth-message" class="auth-message">Nenhum usuário autenticado</p>
     </div>
-    <div class="logo-container">
-        <img src="logo_perola_rara.png" alt="Logo Pérola Rara" id="logo">
-    </div>
-    <h1>Pérola Rara</h1>
-    <hr class="titulo">
-    <nav>
-        <ul>
-            <li><a href="#" onclick="mostrarSubMenu('materiais-insumos')">Custo de Materiais e Insumos</a></li>
-            <li><a href="#" onclick="mostrarSubMenu('mao-de-obra')">Custo de Mão de Obra</a></li>
-            <li><a href="#" onclick="mostrarSubMenu('custos-indiretos')">Custos Indiretos</a></li>
-            <li><a href="#" onclick="mostrarSubMenu('produtos-cadastrados')">Produtos Cadastrados</a></li>
-            <li><a href="#" onclick="mostrarSubMenu('calculo-precificacao')">Cálculo da Precificação</a></li>
-            <li><a href="#" onclick="mostrarSubMenu('precificacoes-geradas')">Precificações Geradas</a></li>
-            <!--  REMOVIDOS: Importar/Exportar e Limpar Página -->
-        </ul>
-    </nav>
-    <hr class="menu">
-</header>
+</div>
 
-<!-- Adicionado para mensagens de status -->
-<div id="mensagens-status" style="text-align: center; padding: 10px;"></div>
+<div id="app-container" style="display: none;">
+    <header>
+        <div class="top-bar">
+            <div id="user-info" class="user-info"></div> <button type="button" id="logoutBtn" class="logout-button">Sair</button>
+        </div>
+        <div class="logo-container">
+            <img src="logo_perola_rara.png" alt="Logo Pérola Rara" id="logo">
+        </div>
+        <h1>Pérola Rara</h1>
+        <hr class="titulo">
+        <nav>
+            <ul>
+                <li><a href="#" onclick="mostrarSubMenu('materiais-insumos')">Custo de Materiais e Insumos</a></li>
+                <li><a href="#" onclick="mostrarSubMenu('mao-de-obra')">Custo de Mão de Obra</a></li>
+                <li><a href="#" onclick="mostrarSubMenu('custos-indiretos')">Custos Indiretos</a></li>
+                <li><a href="#" onclick="mostrarSubMenu('produtos-cadastrados')">Produtos Cadastrados</a></li>
+                <li><a href="#" onclick="mostrarSubMenu('calculo-precificacao')">Cálculo da Precificação</a></li>
+                <li><a href="#" onclick="mostrarSubMenu('precificacoes-geradas')">Precificações Geradas</a></li>
+            </ul>
+        </nav>
+        <hr class="menu">
+    </header>
 
-<!-- ==== INÍCIO SEÇÃO - AUTENTICAÇÃO (Integrada) ==== -->
-    <div id="auth-container">
-        <h2>Login/Cadastro</h2>
-        <div id="auth-message" style="color: red;"></div>
-
-        <form id="login-form">
-            <input type="email" id="login-email" placeholder="Email" required>
-            <input type="password" id="login-password" placeholder="Senha" required>
-            <button type="submit">Entrar</button>
-        </form>
-
-        <form id="signup-form" style="display: none;">
-            <input type="email" id="signup-email" placeholder="Email" required>
-            <input type="password" id="signup-password" placeholder="Senha" required>
-            <input type="password" id="signup-password-confirm" placeholder="Confirmar Senha" required>
-            <button type="submit">Cadastrar</button>
-        </form>
-
-        <button id="toggle-signup">Criar Conta</button>
-        <button id="logout-button" style="display: none;">Sair</button>
-    </div>
-<!-- ==== FIM SEÇÃO - AUTENTICAÇÃO ==== -->
-
-<!-- Seções (agora protegidas por autenticação - inicialmente ocultas) -->
-<section id="conteudo-protegido" style="display: none;">
-
-    <section id="materiais-insumos" class="subpagina" >
+    <!-- Seção Materiais e Insumos -->
+    <section id="materiais-insumos" class="subpagina" style="display: none;">
         <h2 id="titulo-materiais-insumos">Cadastro de Materiais e Insumos</h2>
         <!--  *** AVISO ADICIONADO AQUI - MATERIAIS E INSUMOS *** -->
         <hr class="aviso-separador">
@@ -135,7 +127,7 @@
     </section>
 
     <!-- Seção Mão de Obra -->
-    <section id="mao-de-obra" class="subpagina">
+    <section id="mao-de-obra" class="subpagina" style="display: none;">
         <h2 id="titulo-mao-de-obra">Informações sobre custo de mão de obra</h2>
         <form id="form-mao-de-obra">
             <div class="form-group">
@@ -171,8 +163,8 @@
     </section>
 
     <!-- Seção Custos Indiretos -->
-    <section id="custos-indiretos" class="subpagina">
-    <h2 id="titulo-custos-indiretos">Cadastro de Custos Indiretos</h2>
+    <section id="custos-indiretos" class="subpagina" style="display: none;">
+       <h2 id="titulo-custos-indiretos">Cadastro de Custos Indiretos</h2>
         <p style="text-align: center;">Custos indiretos são considerados para o período de um mês.</p>
 
         <ul id="lista-custos-indiretos">
@@ -200,7 +192,7 @@
 
 
     <!-- Seção Produtos Cadastrados (MODIFICADA) -->
-    <section id="produtos-cadastrados" class="subpagina">
+    <section id="produtos-cadastrados" class="subpagina" style="display: none;">
         <h2 id="titulo-novo-produto">Cadastro de Novo Produto</h2>
         <form id="form-produtos-cadastrados">
             <div class="form-group">
@@ -216,7 +208,7 @@
             <!--  *** AVISO ADICIONADO AQUI *** -->
             <hr class="aviso-separador">
             <p class="aviso-unidades">
-                <strong>Atenção:</strong> Ao adicionar materiais, preencha as dimensões em <span style="color: #5a8289;">centímetros (cm)</span> para materiais do tipo "Área" e "Comprimento".  Para os tipos "Litro", "Quilo" e "Unidade", insira a quantidade diretamente nas unidades correspondentes (L, kg, un).
+                <strong>Atenção:</strong> Ao adicionar materiais, preencha as dimensões em <span style="color: #5a82a9;">centímetros (cm)</span> para materiais do tipo "Área" e "Comprimento".  Para os tipos "Litro", "Quilo" e "Unidade", insira a quantidade diretamente nas unidades correspondentes (L, kg, un).
             </p>
             <hr class="aviso-separador">
             <!--  *** FIM DO AVISO *** -->
@@ -247,7 +239,7 @@
                 <tr>
                     <th>Nome do Produto</th>
                     <th>Materiais Utilizados</th>
-                    <th>Custos/Dimensões do Produto</th>
+                    <th>Custos/Dimensões do Produto</th>  <!-- NOVO CAMPO -->
                     <th>Custo Total dos Materiais (R$)</th>
                     <th>Ações</th>
                 </tr>
@@ -348,23 +340,23 @@
 
             <hr class="total-line">
 
-                    <!-- Taxa de Compra a Crédito -->
-                    <div class="section">
-                        <span>Taxa de Compra a Crédito:</span>
-                        <span id="taxa-credito-valor">R$ 0,00</span>
-                    </div>
-                    <div class="section">
-                        <label>Incluir taxa de crédito?</label>
-                        <label><input type="radio" id="incluir-taxa-credito-sim" name="incluir-taxa-credito" value="sim"> Sim</label>
+    		<!-- Taxa de Compra a Crédito -->
+    		<div class="section">
+    			<span>Taxa de Compra a Crédito:</span>
+    			<span id="taxa-credito-valor">R$ 0,00</span>
+    		</div>
+    		<div class="section">
+    		    <label>Incluir taxa de crédito?</label>
+    			<label><input type="radio" id="incluir-taxa-credito-sim" name="incluir-taxa-credito" value="sim"> Sim</label>
                 <label><input type="radio" id="incluir-taxa-credito-nao" name="incluir-taxa-credito" value="nao" checked> Não</label>
-                        <input type="number" id="taxa-credito-percentual"  step="0.01" value = "6.00" style="width:60px; margin-left: 5px;">%
-                        <button type="button" onclick="salvarTaxaCredito()">Salvar</button>
-                    </div>
+    			<input type="number" id="taxa-credito-percentual"  step="0.01" value = "6.00" style="width:60px; margin-left: 5px;">%
+    			<button type="button" onclick="salvarTaxaCredito()">Salvar</button>
+    		</div>
 
-                    <div class="section total">
-                        <span>Total Final (com Taxas):</span>
-                        <span id="total-final-com-taxas">R$ 0,00</span>
-                    </div>
+    		<div class="section total">
+    			<span>Total Final (com Taxas):</span>
+    			<span id="total-final-com-taxas">R$ 0,00</span>
+    		</div>
         </div>
 
         <!-- **NOVO BOTÃO: Gerar Nota de Precificação** -->
@@ -377,7 +369,7 @@
     <!-- Fim da Seção Cálculo da Precificação -->
 
     <!-- Seção Precificações Geradas -->
-    <section id="precificacoes-geradas" class="subpagina">
+    <section id="precificacoes-geradas" class="subpagina" style="display: none;">
         <h2>Precificações Geradas</h2>
 
         <div class="form-group">
@@ -404,10 +396,11 @@
         <!-- *** FIM DO CONTAINER *** -->
 
     </section>
-<!-- Fim da Seção Precificações Geradas -->
-</section> <!-- Fim da seção protegida -->
+    <!-- Fim da Seção Precificações Geradas -->
+</div>
 
-<script type="module" src="precificacao.js"></script> <!-- MUITO IMPORTANTE: type="module" -->
+
+<script src="precificacao.js" type="module"></script> <!-- Script Local -->
 
 </body>
 </html>
