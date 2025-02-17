@@ -2,11 +2,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 // Suas configurações do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyAydkMsxydduoAFD9pdtg_KIFuckA_PIkE",
+  apiKey: "SUA_API_KEY", // Substitua pela sua API Key real do Firebase
   authDomain: "precificacao-64b06.firebaseapp.com",
   databaseURL: "https://precificacao-64b06-default-rtdb.firebaseio.com",
   projectId: "precificacao-64b06",
@@ -136,6 +136,7 @@ function formatarMoeda(valor) {
     return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+// *** FUNÇÃO MOSTRAR SUBMENU ADICIONADA AQUI ***
 function mostrarSubMenu(submenuId) {
     const conteudos = ['materiais-insumos', 'mao-de-obra', 'custos-indiretos', 'produtos-cadastrados', 'calculo-precificacao', 'precificacoes-geradas'];
     conteudos.forEach(id => {
@@ -231,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarCustosIndiretosPredefinidos();
     atualizarTabelaCustosIndiretos();
 
-    mostrarSubMenu('calculo-precificacao');
+    mostrarSubMenu('calculo-precificacao'); // Mostrar Cálculo da Precificação por padrão ao carregar a página
 
     document.getElementById('margem-lucro-final').value = margemLucroPadrao;
     document.getElementById('taxa-credito-percentual').value = taxaCredito.percentual;
@@ -1063,7 +1064,7 @@ function buscarProdutosCadastrados() {
                 dimensaoTexto = `${item.quantidade} un`;
             }
             listItem.textContent = `${item.material.nome}: ${dimensaoTexto}`;
-            dimensoesList.appendChild(listItem);
+            dimensoesList.appendChild(dimensoesList);
         });
         dimensoesCell.appendChild(dimensoesList);
 
