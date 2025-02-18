@@ -45,12 +45,12 @@
         <hr class="titulo">
         <nav>
             <ul>
-                <li><a href="#" onclick="mostrarSubMenu('materiais-insumos')">Custo de Materiais e Insumos</a></li>
-                <li><a href="#" onclick="mostrarSubMenu('mao-de-obra')">Custo de Mão de Obra</a></li>
-                <li><a href="#" onclick="mostrarSubMenu('custos-indiretos')">Custos Indiretos</a></li>
-                <li><a href="#" onclick="mostrarSubMenu('produtos-cadastrados')">Produtos Cadastrados</a></li>
-                <li><a href="#" onclick="mostrarSubMenu('calculo-precificacao')">Cálculo da Precificação</a></li>
-                <li><a href="#" onclick="mostrarSubMenu('precificacoes-geradas')">Precificações Geradas</a></li>
+                <li><a href="#" data-submenu="materiais-insumos" class="nav-link">Custo de Materiais e Insumos</a></li>
+                <li><a href="#" data-submenu="mao-de-obra" class="nav-link">Custo de Mão de Obra</a></li>
+                <li><a href="#" data-submenu="custos-indiretos" class="nav-link">Custos Indiretos</a></li>
+                <li><a href="#" data-submenu="produtos-cadastrados" class="nav-link">Produtos Cadastrados</a></li>
+                <li><a href="#" data-submenu="calculo-precificacao" class="nav-link">Cálculo da Precificação</a></li>
+                <li><a href="#" data-submenu="precificacoes-geradas" class="nav-link">Precificações Geradas</a></li>
             </ul>
         </nav>
         <hr class="menu">
@@ -398,7 +398,7 @@
 </div>
 
 
-<script src="precificacao.js" type="module"></script>
+<script src="precificacao.js" type="module"></script> <!-- Script Local - COM type="module" -->
 
 </body>
 </html>
