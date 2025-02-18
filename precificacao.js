@@ -206,14 +206,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('produto-pesquisa').addEventListener('input', buscarProdutosAutocomplete);
 
     // Adiciona event listeners para os links de navegação
-    const navLinks = document.querySelectorAll('nav ul li a.nav-link'); // Seleciona os links com a classe 'nav-link'
+    const navLinks = document.querySelectorAll('nav ul li a.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function(event) {
-            event.preventDefault(); // Impede o comportamento padrão do link (recarregar a página)
-            const submenuId = this.dataset.submenu; // Obtém o submenuId do atributo data-submenu
-            mostrarSubMenu(submenuId); // Chama a função mostrarSubMenu com o submenuId
+            event.preventDefault();
+            const submenuId = this.dataset.submenu;
+            mostrarSubMenu(submenuId);
         });
     });
+
+    // Botão "Cadastrar" - Materiais e Insumos
+    const btnCadastrarMaterialInsumo = document.getElementById('cadastrar-material-insumo-btn');
+    if (btnCadastrarMaterialInsumo) {
+        btnCadastrarMaterialInsumo.addEventListener('click', cadastrarMaterialInsumo);
+    }
+
+    // Botão "Salvar" - Mão de Obra
+    const btnSalvarMaoDeObra = document.getElementById('btn-salvar-mao-de-obra');
+    if (btnSalvarMaoDeObra) {
+        btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra);
+    }
 
 });
 
@@ -540,7 +552,7 @@ async function carregarCustosIndiretosPredefinidos() {
         listItem.innerHTML = `
             <div class="custo-item-nome">${custoBase.descricao}</div>
             <input type="number" id="custo-indireto-${index}" value="${custoAtual.valorMensal.toFixed(2)}" step="0.01">
-            <button onclick="salvarCustoIndiretoPredefinido('${custoBase.descricao}', ${index})">Salvar</button>
+            <button class="salvar-custo-indireto-predefinido-btn" data-descricao="${custoBase.descricao}" data-index="${index}">Salvar</button>
         `;
         listaCustos.appendChild(listItem);
     });
@@ -558,7 +570,7 @@ async function carregarCustosIndiretosPredefinidos() {
             listItem.innerHTML = `
                 <div class="custo-item-nome">${custo.descricao}</div>
                 <input type="number" value="${custo.valorMensal.toFixed(2)}" step="0.01">
-                <button onclick="salvarNovoCustoIndiretoLista(this)" data-id="${custo.id}" data-index="${custo.tempIndex}">Salvar</button>
+                <button class="salvar-novo-custo-indireto-btn" data-id="${custo.id}" data-index="${custo.tempIndex}">Salvar</button>
                 <button onclick="removerNovoCustoIndiretoLista(this)" data-id="${custo.id}" data-index="${custo.tempIndex}">Remover</button>
             `;
             listaCustos.appendChild(listItem);
@@ -568,8 +580,25 @@ async function carregarCustosIndiretosPredefinidos() {
 
     } catch (error) {
         console.error("Erro ao carregar custos indiretos adicionais do Firebase:", error);
+        }
+
+        // Adiciona event listeners para os botões "Salvar" de custos indiretos
+        const botoesSalvarPredefinidos = document.querySelectorAll('.salvar-custo-indireto-predefinido-btn');
+        botoesSalvarPredefinidos.forEach(botao => {
+            botao.addEventListener('click', function() {
+                const descricao = this.dataset.descricao;
+                const index = parseInt(this.dataset.index);
+                salvarCustoIndiretoPredefinido(descricao, index);
+            });
+        });
+
+        const botoesSalvarNovosCustos = document.querySelectorAll('.salvar-novo-custo-indireto-btn');
+        botoesSalvarNovosCustos.forEach(botao => {
+            botao.addEventListener('click', function() {
+                salvarNovoCustoIndiretoLista(this);
+            });
+        });
     }
-}
 
 async function salvarCustoIndiretoPredefinido(descricao, index) {
     const inputValor = document.getElementById(`custo-indireto-${index}`);
@@ -596,7 +625,7 @@ function adicionarNovoCustoIndireto() {
     listItem.innerHTML = `
         <input type="text" class="custo-item-nome" placeholder="Descrição do novo custo">
         <input type="number" value="0.00" step="0.01">
-        <button onclick="salvarNovoCustoIndiretoLista(this)" data-index="${id}">Salvar</button>
+        <button class="salvar-novo-custo-indireto-btn" data-index="${id}">Salvar</button>
         <button onclick="removerNovoCustoIndiretoLista(this)" data-index="${id}">Remover</button>
     `;
     listaCustos.appendChild(listItem);
@@ -1315,8 +1344,8 @@ async function gerarNotaPrecificacao() {
     const produtoNome = document.getElementById('produto-pesquisa').value;
     const horasProduto = parseFloat(document.getElementById('horas-produto').value);
     const margemLucro = parseFloat(document.getElementById('margem-lucro-final').value);
-    const totalFinal = parseFloat(document.getElementById('total-final').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.'));
-    const totalComTaxas = parseFloat(document.getElementById('total-final-com-taxas').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.'));
+    const totalFinal = parseFloat(document.getElementById('total-final').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
+    const totalComTaxas = parseFloat(document.getElementById('total-final-com-taxas').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
 
     const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
     const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
@@ -1377,7 +1406,7 @@ async function gerarNotaPrecificacao() {
 
     try {
         await addDoc(collection(db, "precificacoes-geradas"), precificacao);
-        precificacoesGeradas.push(precificacao);
+        precificacoesGeradas.push(precificacoes);
         atualizarTabelaPrecificacoesGeradas();
         salvarDados();
         alert('Nota de precificação gerada e salva no Firebase!');
