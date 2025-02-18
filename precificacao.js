@@ -205,6 +205,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('produto-pesquisa').addEventListener('input', buscarProdutosAutocomplete);
 
+    // Adiciona event listeners para os links de navegação
+    const navLinks = document.querySelectorAll('nav ul li a.nav-link'); // Seleciona os links com a classe 'nav-link'
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault(); // Impede o comportamento padrão do link (recarregar a página)
+            const submenuId = this.dataset.submenu; // Obtém o submenuId do atributo data-submenu
+            mostrarSubMenu(submenuId); // Chama a função mostrarSubMenu com o submenuId
+        });
+    });
+
 });
 
 function calcularCustoUnitario(tipo, valorTotal, comprimentoCm, volumeMl, pesoG, larguraCm, alturaCm) {
@@ -1432,7 +1442,7 @@ function buscarPrecificacoesGeradas() {
         const viewButton = document.createElement('button');
         viewButton.textContent = 'Visualizar';
         viewButton.onclick = () => abrirPrecificacaoEmNovaJanela(precificacao.id);
-        actionsCell.appendChild(viewButton);
+        cellAcoes.appendChild(viewButton);
     });
 }
 
