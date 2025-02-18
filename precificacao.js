@@ -227,7 +227,81 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra);
     }
 
+    // Adiciona event listener para o botão "Adicionar Custo Indireto"
+    const adicionarCustoIndiretoBtn = document.getElementById('adicionar-custo-indireto-btn');
+    adicionarCustoIndiretoBtn.addEventListener('click', adicionarNovoCustoIndireto);
+
+    // Adiciona event listener para a busca de materiais no formulário de produtos
+    const pesquisaMaterialInput = document.getElementById('pesquisa-material');
+    pesquisaMaterialInput.addEventListener('input', buscarMateriaisAutocomplete);
+
+    // Função para buscar materiais e exibir sugestões
+    async function buscarMateriaisAutocomplete() {
+        const termo = document.getElementById('pesquisa-material').value.toLowerCase();
+        const resultadosDiv = document.getElementById('resultados-pesquisa');
+        resultadosDiv.innerHTML = '';
+        resultadosDiv.style.display = 'block'; // Garante que a div de resultados esteja visível
+
+        if (!termo) {
+            resultadosDiv.style.display = 'none';
+            return;
+        }
+
+        // Simula a busca de materiais no array "materiais" (você deve ajustar isso para o Firebase)
+        const resultados = materiais.filter(material => material.nome.toLowerCase().includes(termo));
+
+        if (resultados.length > 0) {
+            resultadosDiv.style.display = 'block';
+            resultados.forEach(material => {
+                const div = document.createElement('div');
+                div.textContent = material.nome;
+                div.addEventListener('click', () => selecionarMaterial(material));
+                resultadosDiv.appendChild(div);
+            });
+        } else {
+            resultadosDiv.style.display = 'none';
+            const div = document.createElement('div');
+            div.textContent = "Nenhum material encontrado";
+            resultadosDiv.appendChild(div);
+        }
+    }
+
+    function selecionarMaterial(material) {
+        // Lógica para adicionar o material selecionado à tabela de materiais do produto
+        const nomeMaterial = document.getElementById('pesquisa-material').value;
+        const tipoMaterial = material.tipo;
+        let quantidade = 1;
+        let comprimento, largura, altura, volume, peso;
+        if (tipoMaterial === "comprimento") {
+            comprimento = 100;
+        } else if (tipoMaterial === "area") {
+            largura = 100;
+            altura = 100;
+        } else if (tipoMaterial === "litro") {
+            volume = 1000;
+        } else if (tipoMaterial === "quilo") {
+            peso = 1000;
+        } else if (tipoMaterial === "unidade") {
+            quantidade = 1;
+        }
+
+        adicionarMaterialNaTabelaProduto(material, material.tipo, quantidade, comprimento, largura, altura, volume, peso);
+    }
 });
+
+function adicionarNovoCustoIndireto() {
+    const listaCustos = document.getElementById('lista-custos-indiretos');
+    const listItem = document.createElement('li');
+    const id = `novo-custo-${novoCustoIndiretoCounter++}`;
+    listItem.dataset.index = id;
+    listItem.innerHTML = `
+        <input type="text" class="custo-item-nome" placeholder="Descrição do novo custo">
+        <input type="number" value="0.00" step="0.01">
+        <button class="salvar-novo-custo-indireto-btn" data-index="${id}">Salvar</button>
+        <button onclick="removerNovoCustoIndiretoLista(this)" data-index="${id}">Remover</button>
+    `;
+    listaCustos.appendChild(listItem);
+}
 
 function calcularCustoUnitario(tipo, valorTotal, comprimentoCm, volumeMl, pesoG, larguraCm, alturaCm) {
     let custoUnitario = 0;
@@ -1644,38 +1718,5 @@ async function carregarDados() {
     } catch (error) {
         console.error("Erro ao carregar dados do Firebase:", error);
         alert("Erro ao carregar dados do Firebase. Verifique o console para mais detalhes.");
-    }
-}
-
-function limparPagina() {
-    if (confirm('Tem certeza que deseja limpar todos os dados LOCALMENTE (interface)? Os dados do Firebase NÃO serão apagados.')) {
-        localStorage.removeItem('dadosPrecificacao');
-
-        materiais = [];
-        custosIndiretosAdicionais = [];
-        produtos = [];
-        precificacoesGeradas = [];
-
-        atualizarTabelaMateriaisInsumos();
-        atualizarTabelaCustosIndiretos();
-        atualizarTabelaProdutosCadastrados();
-        atualizarTabelaPrecificacoesGeradas();
-
-        limparFormulario('form-materiais-insumos');
-        limparFormulario('form-mao-de-obra');
-        limparFormulario('form-produtos-cadastrados');
-        document.querySelector('#tabela-materiais-produto tbody').innerHTML = '';
-
-        document.getElementById('salario-receber').value = '';
-        document.getElementById('horas-trabalhadas').value = 220;
-        document.getElementById('incluir-ferias-13o-nao').checked = true;
-        calcularValorHora();
-        calcularCustoFerias13o();
-
-        document.getElementById('margem-lucro-final').value = margemLucroPadrao;
-        document.getElementById('taxa-credito-percentual').value = taxaCredito.percentual;
-        document.getElementById('incluir-taxa-credito-nao').checked = true;
-
-        calcularCustos();
     }
 }
