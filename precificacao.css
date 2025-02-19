@@ -51,6 +51,8 @@ body {
     border-radius: 20px;
     font-size: 16px;
     margin-bottom: 10px;
+    background-color: #ffffff; /* Alterado para fundo branco - Opção 1 */
+    color: #333;
 }
 
 .auth-buttons {
@@ -572,14 +574,30 @@ td {
     padding: 10px 20px;
 }
 
-.user-info {
+.top-bar-content {
+    background-color: #e3f2fd; /* Fundo claro e delicado - mesmo do auth-container */
+    padding: 8px 15px; /* Adiciona um pouco de padding interno */
+    border-radius: 20px; /* Arredonda as bordas para combinar com outros elementos */
+    display: flex;         /* Para alinhar user-info e logoutBtn horizontalmente */
+    align-items: center;   /* Alinha verticalmente os itens dentro */
+    justify-content: space-between; /* Espaçamento entre user-info e logoutBtn se necessário */
+    gap: 15px;             /* Espaçamento entre os itens dentro (user-info e logoutBtn) */
+}
+
+.top-bar .user-info {
     font-size: 0.9em;
     color: #666;
     padding: 5px 10px;
+    margin: 0;     /* Remove margens padrão se houver */
 }
 
 #logoutBtn.logout-button {
     margin: 0;
+    background-color: #7aa2a9; /* Mantém a cor original do botão de logout */
+    color: white;
+    padding: 8px 15px; /* Ajusta o padding para combinar com o container */
+    border-radius: 20px;
+    font-size: 14px; /* Ajusta o tamanho da fonte se necessário */
 }
 
 
