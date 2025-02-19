@@ -36,7 +36,10 @@
 <div id="app-container" style="display: none;">
     <header>
         <div class="top-bar">
-            <div id="user-info" class="user-info"></div> <button type="button" id="logoutBtn" class="logout-button">Sair</button>
+            <div class="top-bar-content">  <!--  **NOVO CONTAINER AQUI** -->
+                <div id="user-info" class="user-info"></div>
+                <button type="button" id="logoutBtn" class="logout-button">Sair</button>
+            </div> <!--  **FIM DO NOVO CONTAINER** -->
         </div>
         <div class="logo-container">
             <img src="logo_perola_rara.png" alt="Logo Pérola Rara" id="logo">
@@ -168,7 +171,7 @@
         <ul id="lista-custos-indiretos">
             </ul>
 
-      <button type="button" id="adicionarCustoIndiretoBtn">+ Adicionar Custo Indireto</button>
+        <button type="button" id="adicionarCustoIndiretoBtn">+ Adicionar Custo Indireto</button>
 
         <h2>Custos Indiretos Cadastrados</h2>
         <div class="form-group">
@@ -199,7 +202,7 @@
             </div>
             <div class="form-group">
                 <label for="pesquisa-material">Adicionar Material/Insumo:</label>
-                <input type="text" id="pesquisa-material" name="pesquisa-material" placeholder="Pesquisar..." oninput="buscarMateriaisAutocomplete()">
+                <input type="text" id="pesquisa-material" name="pesquisa-material" placeholder="Pesquisar...">
                 <div id="resultados-pesquisa"></div>
             </div>
 
