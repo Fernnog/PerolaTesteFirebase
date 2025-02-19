@@ -1165,7 +1165,42 @@ function removerLinhaMaterial(index) {
     tbody.deleteRow(index);
 }
 
-function buscarProdutosAutocomplete() {
+// ===== INÍCIO - MODIFICAÇÃO PARA AUTOCOMPLETE DE MATERIAIS =====
+function buscarMateriaisAutocomplete() {
+    const termo = document.getElementById('pesquisa-material').value.toLowerCase();
+    const resultadosDiv = document.getElementById('resultados-pesquisa');
+    resultadosDiv.innerHTML = '';
+    resultadosDiv.style.display = 'block'; // Garante que a div de resultados seja exibida
+
+    if (!termo) {
+        resultadosDiv.classList.add('hidden');
+        return;
+    }
+
+    const resultados = materiais.filter(material => material.nome.toLowerCase().includes(termo));
+
+    if (resultados.length > 0) {
+        resultadosDiv.classList.remove('hidden');
+        resultados.forEach(material => {
+            const div = document.createElement('div');
+            div.textContent = material.nome;
+            div.onclick = () => selecionarMaterial(material);
+            resultadosDiv.appendChild(div);
+        });
+    } else {
+        resultadosDiv.classList.add('hidden');
+    }
+}
+
+function selecionarMaterial(material) {
+    document.getElementById('pesquisa-material').value = material.nome;
+    document.getElementById('resultados-pesquisa').classList.add('hidden');
+    document.getElementById('resultados-pesquisa').innerHTML = ''; // Limpa os resultados
+}
+// ===== FIM - MODIFICAÇÃO PARA AUTOCOMPLETE DE MATERIAIS =====
+
+
+function buscarProdutosAutocomplete() { // Mantém a função de autocomplete de produtos para cálculo de precificação
     const termo = document.getElementById('produto-pesquisa').value.toLowerCase();
     const resultadosDiv = document.getElementById('produto-resultados');
     resultadosDiv.innerHTML = '';
@@ -1727,5 +1762,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnSalvarMaoDeObra) {
         btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra);
     }
+
+    // ===== INÍCIO - EVENT LISTENER PARA AUTOCOMPLETE DE MATERIAIS =====
+    document.getElementById('pesquisa-material').addEventListener('input', buscarMateriaisAutocomplete);
+    // ===== FIM - EVENT LISTENER PARA AUTOCOMPLETE DE MATERIAIS =====
+
 });
 // ==== FIM SEÇÃO - EVENT LISTENERS GERAIS (DOMContentLoaded) ====
