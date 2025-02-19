@@ -502,9 +502,18 @@ async function carregarCustosIndiretosPredefinidos() {
                 <div class="custo-item-nome">${custo.descricao}</div>
                 <input type="number" value="${custo.valorMensal.toFixed(2)}" step="0.01">
                 <button class="salvar-novo-custo-indireto-btn" data-id="${custo.id}" data-index="${custo.tempIndex}">Salvar</button>
-                <button onclick="removerNovoCustoIndiretoLista(this)" data-id="${custo.id}" data-index="${custo.tempIndex}">Remover</button>
+                <button class="remover-novo-custo-indireto-btn" data-id="${custo.id}" data-index="${custo.tempIndex}">Remover</button>
             `;
             listaCustos.appendChild(listItem);
+
+            // ADD EVENT LISTENERS HERE, AFTER APPENDING listItem:
+            const salvarBtn = listItem.querySelector('.salvar-novo-custo-indireto-btn');
+            const removerBtn = listItem.querySelector('.remover-novo-custo-indireto-btn');
+
+            if (salvarBtn && removerBtn) { // Check if buttons were found
+                salvarBtn.addEventListener('click', function() { salvarNovoCustoIndiretoLista(this); });
+                removerBtn.addEventListener('click', function() { removerNovoCustoIndiretoLista(this); });
+            }
         });
 
         atualizarTabelaCustosIndiretos();
@@ -564,9 +573,18 @@ function adicionarNovoCustoIndireto() {
         <input type="text" class="custo-item-nome" placeholder="Descrição do novo custo">
         <input type="number" value="0.00" step="0.01">
         <button class="salvar-novo-custo-indireto-btn" data-index="${id}">Salvar</button>
-        <button onclick="removerNovoCustoIndiretoLista(this)" data-index="${id}">Remover</button>
+        <button class="remover-novo-custo-indireto-btn" data-index="${id}">Remover</button>
     `;
     listaCustos.appendChild(listItem);
+
+    // ADD EVENT LISTENERS HERE, AFTER APPENDING listItem:
+    const salvarBtn = listItem.querySelector('.salvar-novo-custo-indireto-btn');
+    const removerBtn = listItem.querySelector('.remover-novo-custo-indireto-btn');
+
+    if (salvarBtn && removerBtn) { // Check if buttons were found
+        salvarBtn.addEventListener('click', function() { salvarNovoCustoIndiretoLista(this); });
+        removerBtn.addEventListener('click', function() { removerNovoCustoIndiretoLista(this); });
+    }
 }
 
 async function salvarNovoCustoIndiretoLista(botao) {
@@ -769,6 +787,7 @@ function buscarCustosIndiretosCadastrados() {
     });
 }
 // ==== FIM SEÇÃO - FUNÇÕES CUSTOS INDIRETOS ====
+
 
 // ==== INÍCIO SEÇÃO - FUNÇÕES PRODUTOS CADASTRADOS ====
 async function cadastrarProduto() {
