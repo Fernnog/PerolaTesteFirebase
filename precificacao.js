@@ -227,67 +227,395 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra);
     }
 
-    // Adiciona event listener para o botão "Adicionar Custo Indireto"
-    const adicionarCustoIndiretoBtn = document.getElementById('adicionar-custo-indireto-btn');
-    adicionarCustoIndiretoBtn.addEventListener('click', adicionarNovoCustoIndireto);
-
-    // Adiciona event listener para a busca de materiais no formulário de produtos
-    const pesquisaMaterialInput = document.getElementById('pesquisa-material');
-    pesquisaMaterialInput.addEventListener('input', buscarMateriaisAutocomplete);
-
-    // Função para buscar materiais e exibir sugestões
-    async function buscarMateriaisAutocomplete() {
-        const termo = document.getElementById('pesquisa-material').value.toLowerCase();
-        const resultadosDiv = document.getElementById('resultados-pesquisa');
-        resultadosDiv.innerHTML = '';
-        resultadosDiv.style.display = 'block'; // Garante que a div de resultados esteja visível
-
-        if (!termo) {
-            resultadosDiv.style.display = 'none';
-            return;
-        }
-
-        // Simula a busca de materiais no array "materiais" (você deve ajustar isso para o Firebase)
-        const resultados = materiais.filter(material => material.nome.toLowerCase().includes(termo));
-
-        if (resultados.length > 0) {
-            resultadosDiv.style.display = 'block';
-            resultados.forEach(material => {
-                const div = document.createElement('div');
-                div.textContent = material.nome;
-                div.addEventListener('click', () => selecionarMaterial(material));
-                resultadosDiv.appendChild(div);
-            });
-        } else {
-            resultadosDiv.style.display = 'none';
-            const div = document.createElement('div');
-            div.textContent = "Nenhum material encontrado";
-            resultadosDiv.appendChild(div);
-        }
-    }
-
-    function selecionarMaterial(material) {
-        // Lógica para adicionar o material selecionado à tabela de materiais do produto
-        const nomeMaterial = document.getElementById('pesquisa-material').value;
-        const tipoMaterial = material.tipo;
-        let quantidade = 1;
-        let comprimento, largura, altura, volume, peso;
-        if (tipoMaterial === "comprimento") {
-            comprimento = 100;
-        } else if (tipoMaterial === "area") {
-            largura = 100;
-            altura = 100;
-        } else if (tipoMaterial === "litro") {
-            volume = 1000;
-        } else if (tipoMaterial === "quilo") {
-            peso = 1000;
-        } else if (tipoMaterial === "unidade") {
-            quantidade = 1;
-        }
-
-        adicionarMaterialNaTabelaProduto(material, material.tipo, quantidade, comprimento, largura, altura, volume, peso);
-    }
 });
+
+function calcularCustoUnitario(tipo, valorTotal, comprimentoCm, volumeMl, pesoG, larguraCm, alturaCm) {
+    let custoUnitario = 0;
+    switch (tipo) {
+        case "comprimento":
+            custoUnitario = valorTotal / (comprimentoCm / 100);
+            break;
+        case "litro":
+            custoUnitario = valorTotal / (volumeMl / 1000);
+            break;
+        case "quilo":
+            custoUnitario = valorTotal / (pesoG / 1000);
+            break;
+        case "unidade":
+            custoUnitario = valorTotal;
+            break;
+        case "area":
+            custoUnitario = valorTotal / ((larguraCm / 100) * (alturaCm / 100));
+            break;
+    }
+    return custoUnitario;
+}
+
+async function cadastrarMaterialInsumo() {
+    const nome = document.getElementById('nome-material').value;
+    const tipo = document.querySelector('input[name="tipo-material"]:checked').value;
+    const valorTotal = parseFloat(document.getElementById('valor-total-material').value);
+    const comprimentoCm = (tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0;
+    const volumeMl = (tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0;
+    const pesoG = (tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0;
+    const larguraCm = (tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0;
+    const alturaCm = (tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0;
+
+    const custoUnitario = calcularCustoUnitario(tipo, valorTotal, comprimentoCm, volumeMl, pesoG, larguraCm, alturaCm);
+
+    const material = {
+        nome,
+        tipo,
+        valorTotal,
+        comprimentoCm,
+        volumeMl,
+        pesoG,
+        larguraCm,
+        alturaCm,
+        custoUnitario
+    };
+
+    try {
+        await addDoc(collection(db, "materiais-insumos"), material);
+        atualizarTabelaMateriaisInsumos();
+        limparFormulario('form-materiais-insumos');
+
+        const produtosImpactados = produtos.filter(produto =>
+            produto.materiais.some(item => item.material.nome === material.nome)
+        );
+
+        produtosImpactados.forEach(produto => {
+            produto.materiais.forEach(item => {
+                if (item.material.nome === material.nome && item.tipo === material.tipo) {
+                    item.material.custoUnitario = material.custoUnitario;
+                    item.custoTotal = calcularCustoTotalItem(item);
+                }
+            });
+            produto.custoTotal = produto.materiais.reduce((total, item) => total + item.custoTotal, 0);
+        });
+
+        salvarDados();
+        atualizarTabelaProdutosCadastrados();
+
+        const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
+        if(produtoSelecionadoNome){
+            const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
+            if(produtoSelecionado){
+                carregarDadosProduto(produtoSelecionado);
+                calcularCustos();
+            }
+        }
+        alert('Material/Insumo cadastrado com sucesso no Firebase!');
+
+    } catch (error) {
+        console.error("Erro ao cadastrar material no Firebase:", error);
+        alert('Erro ao cadastrar material/insumo no Firebase.');
+    }
+}
+
+async function atualizarTabelaMateriaisInsumos() {
+    const tbody = document.querySelector('#tabela-materiais-insumos tbody');
+    tbody.innerHTML = '';
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "materiais-insumos"));
+        materiais = [];
+        querySnapshot.forEach((doc) => {
+            materiais.push({ id: doc.id, ...doc.data() });
+        });
+
+        materiais.forEach((material) => {
+            const row = tbody.insertRow();
+
+            row.insertCell().textContent = material.nome;
+            row.insertCell().textContent = material.tipo;
+
+            let dimensoes = '';
+            switch (material.tipo) {
+                case 'comprimento':
+                    dimensoes = `${material.comprimentoCm} cm`;
+                    break;
+                case 'litro':
+                    dimensoes = `${material.volumeMl} ml`;
+                    break;
+                case 'quilo':
+                    dimensoes = `${material.pesoG} g`;
+                    break;
+                case 'unidade':
+                    dimensoes = 'N/A';
+                    break;
+                case 'area':
+                    dimensoes = `${material.larguraCm} x ${material.alturaCm} cm`;
+                    break;
+            }
+            row.insertCell().textContent = dimensoes;
+            row.insertCell().textContent = formatarMoeda(material.custoUnitario);
+
+            const cellAcoes = row.insertCell();
+            const btnEditar = document.createElement('button');
+            btnEditar.textContent = 'Editar';
+            btnEditar.onclick = () => editarMaterialInsumo(material.id);
+            const btnRemover = document.createElement('button');
+            btnRemover.textContent = 'Remover';
+            btnRemover.onclick = () => removerMaterialInsumo(material.id);
+            cellAcoes.appendChild(btnEditar);
+            cellAcoes.appendChild(btnRemover);
+        });
+    } catch (error) {
+        console.error("Erro ao carregar materiais do Firebase:", error);
+    }
+}
+
+function buscarMateriaisCadastrados() {
+    const termoBusca = document.getElementById('busca-material').value.toLowerCase();
+    const tbody = document.querySelector('#tabela-materiais-insumos tbody');
+    tbody.innerHTML = '';
+
+    materiais.filter(material => material.nome.toLowerCase().includes(termoBusca)).forEach((material) => {
+        const row = tbody.insertRow();
+
+        row.insertCell().textContent = material.nome;
+        row.insertCell().textContent = material.tipo;
+
+        let dimensoes = '';
+            switch (material.tipo) {
+                case 'comprimento':
+                    dimensoes = `${material.comprimentoCm} cm`;
+                    break;
+                case 'litro':
+                    dimensoes = `${material.volumeMl} ml`;
+                    break;
+                case 'quilo':
+                    dimensoes = `${material.pesoG} g`;
+                    break;
+                case 'unidade':
+                    dimensoes = 'N/A';
+                    break;
+                case 'area':
+                    dimensoes = `${material.larguraCm} x ${material.alturaCm} cm`;
+                    break;
+            }
+        row.insertCell().textContent = dimensoes;
+        row.insertCell().textContent = formatarMoeda(material.custoUnitario);
+
+        const cellAcoes = row.insertCell();
+        const btnEditar = document.createElement('button');
+        btnEditar.textContent = 'Editar';
+        btnEditar.onclick = () => editarMaterialInsumo(material.id);
+        const btnRemover = document.createElement('button');
+        btnRemover.textContent = 'Remover';
+        btnRemover.onclick = () => removerMaterialInsumo(material.id);
+        cellAcoes.appendChild(btnEditar);
+        cellAcoes.appendChild(btnRemover);
+    });
+}
+
+async function editarMaterialInsumo(materialId) {
+    const material = materiais.find(m => m.id === materialId);
+
+    if (!material) {
+        alert('Material não encontrado para edição.');
+        return;
+    }
+
+    document.getElementById('nome-material').value = material.nome;
+    document.querySelector(`input[name="tipo-material"][value="${material.tipo}"]`).checked = true;
+    document.getElementById('valor-total-material').value = material.valorTotal;
+
+    document.querySelectorAll('.form-group[id^="campos-"]').forEach(el => el.style.display = 'none');
+    if (material.tipo === 'comprimento') {
+        document.getElementById('campos-comprimento').style.display = 'block';
+        document.getElementById('comprimento-cm').value = material.comprimentoCm;
+    } else if (material.tipo === 'litro') {
+        document.getElementById('campos-litro').style.display = 'block';
+        document.getElementById('volume-ml').value = material.volumeMl;
+    } else if (material.tipo === 'quilo') {
+        document.getElementById('campos-quilo').style.display = 'block';
+        document.getElementById('peso-g').value = material.pesoG;
+    } else if (material.tipo === 'area') {
+        document.getElementById('campos-area').style.display = 'block';
+        document.getElementById('largura-cm').value = material.larguraCm;
+        document.getElementById('altura-cm').value = material.alturaCm;
+    }
+
+    await removerMaterialInsumo(materialId, true);
+}
+
+async function removerMaterialInsumo(materialId, isEditing = false) {
+    try {
+        await deleteDoc(doc(db, "materiais-insumos", materialId));
+        if (!isEditing) {
+            atualizarTabelaMateriaisInsumos();
+        }
+        if (!isEditing) alert('Material/Insumo removido do Firebase!');
+
+    } catch (error) {
+        console.error("Erro ao remover material do Firebase:", error);
+        alert('Erro ao remover material/insumo do Firebase.');
+    }
+}
+
+function calcularValorHora() {
+    const salario = parseFloat(document.getElementById('salario-receber').value);
+    const horas = parseInt(document.getElementById('horas-trabalhadas').value);
+
+    if (isNaN(salario) || isNaN(horas) || horas === 0) {
+      document.getElementById('valor-hora').value = '';
+      return;
+    }
+
+    const valorHora = salario / horas;
+    document.getElementById('valor-hora').value = valorHora.toFixed(2);
+    return valorHora;
+}
+
+function calcularCustoFerias13o() {
+    const salario = parseFloat(document.getElementById('salario-receber').value);
+    const horas = parseInt(document.getElementById('horas-trabalhadas').value);
+    const incluir = document.getElementById('incluir-ferias-13o-sim').checked;
+
+    let custoFerias13o = 0;
+    if (incluir) {
+        custoFerias13o = ((salario + (salario / 3)) / 12) / horas;
+    }
+    document.getElementById('custo-ferias-13o').value = custoFerias13o.toFixed(2);
+     return custoFerias13o;
+}
+
+async function salvarMaoDeObra() {
+    const valorHora = calcularValorHora();
+
+    if (valorHora === undefined) {
+        alert('Preencha os campos de salário e horas corretamente.');
+        return;
+    }
+
+    const maoDeObraData = {
+        salario : parseFloat(document.getElementById('salario-receber').value),
+        horas : parseInt(document.getElementById('horas-trabalhadas').value),
+        valorHora : calcularValorHora(),
+        incluirFerias13o : document.getElementById('incluir-ferias-13o-sim').checked,
+        custoFerias13o : calcularCustoFerias13o()
+    };
+
+    try {
+        await setDoc(doc(db, "configuracoes", "maoDeObra"), maoDeObraData);
+
+        maoDeObra = maoDeObraData;
+
+        document.getElementById('salario-receber').value = maoDeObra.salario;
+        document.getElementById('horas-trabalhadas').value = maoDeObra.horas;
+        document.getElementById('valor-hora').value = maoDeObra.valorHora.toFixed(2);
+        document.getElementById('custo-ferias-13o').value = maoDeObra.custoFerias13o.toFixed(2);
+
+        alert("Dados de mão de obra salvos com sucesso no Firebase!");
+
+        modoEdicaoMaoDeObra = true;
+        document.getElementById('btn-salvar-mao-de-obra').style.display = 'none';
+        document.getElementById('btn-editar-mao-de-obra').style.display = 'inline-block';
+
+        document.getElementById('titulo-mao-de-obra').textContent = 'Informações sobre custo de mão de obra';
+        document.getElementById('salario-receber').readOnly = true;
+        document.getElementById('horas-trabalhadas').readOnly = true;
+
+         atualizarTabelaCustosIndiretos();
+         calcularCustos();
+
+         salvarDados();
+
+    } catch (error) {
+        console.error("Erro ao salvar dados de mão de obra no Firebase:", error);
+        alert('Erro ao salvar dados de mão de obra no Firebase.');
+    }
+}
+
+function editarMaoDeObra() {
+    modoEdicaoMaoDeObra = false;
+
+    document.getElementById('salario-receber').readOnly = false;
+    document.getElementById('horas-trabalhadas').readOnly = false;
+
+    document.getElementById('btn-editar-mao-de-obra').style.display = 'none';
+    document.getElementById('btn-salvar-mao-de-obra').style.display = 'inline-block';
+
+    document.getElementById('mao-de-obra').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('titulo-mao-de-obra').textContent = 'Informações sobre custo de mão de obra';
+}
+
+async function carregarCustosIndiretosPredefinidos() {
+    const listaCustos = document.getElementById('lista-custos-indiretos');
+    listaCustos.innerHTML = '';
+
+    custosIndiretosPredefinidosBase.forEach((custoBase, index) => {
+        const listItem = document.createElement('li');
+        const custoAtual = custosIndiretosPredefinidos.find(c => c.descricao === custoBase.descricao) || { ...custoBase };
+        listItem.innerHTML = `
+            <div class="custo-item-nome">${custoBase.descricao}</div>
+            <input type="number" id="custo-indireto-${index}" value="${custoAtual.valorMensal.toFixed(2)}" step="0.01">
+            <button class="salvar-custo-indireto-predefinido-btn" data-descricao="${custoBase.descricao}" data-index="${index}">Salvar</button>
+        `;
+        listaCustos.appendChild(listItem);
+    });
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "custos-indiretos-adicionais"));
+        custosIndiretosAdicionais = [];
+        querySnapshot.forEach((doc) => {
+            custosIndiretosAdicionais.push({ id: doc.id, ...doc.data() });
+        });
+
+        custosIndiretosAdicionais.forEach((custo) => {
+            const listItem = document.createElement('li');
+            listItem.dataset.index = custo.tempIndex;
+            listItem.innerHTML = `
+                <div class="custo-item-nome">${custo.descricao}</div>
+                <input type="number" value="${custo.valorMensal.toFixed(2)}" step="0.01">
+                <button class="salvar-novo-custo-indireto-btn" data-id="${custo.id}" data-index="${custo.tempIndex}">Salvar</button>
+                <button onclick="removerNovoCustoIndiretoLista(this)" data-id="${custo.id}" data-index="${custo.tempIndex}">Remover</button>
+            `;
+            listaCustos.appendChild(listItem);
+        });
+
+        atualizarTabelaCustosIndiretos();
+
+    } catch (error) {
+        console.error("Erro ao carregar custos indiretos adicionais do Firebase:", error);
+        }
+
+        // Adiciona event listeners para os botões "Salvar" de custos indiretos
+        const botoesSalvarPredefinidos = document.querySelectorAll('.salvar-custo-indireto-predefinido-btn');
+        botoesSalvarPredefinidos.forEach(botao => {
+            botao.addEventListener('click', function() {
+                const descricao = this.dataset.descricao;
+                const index = parseInt(this.dataset.index);
+                salvarCustoIndiretoPredefinido(descricao, index);
+            });
+        });
+
+        const botoesSalvarNovosCustos = document.querySelectorAll('.salvar-novo-custo-indireto-btn');
+        botoesSalvarNovosCustos.forEach(botao => {
+            botao.addEventListener('click', function() {
+                salvarNovoCustoIndiretoLista(this);
+            });
+        });
+    }
+
+async function salvarCustoIndiretoPredefinido(descricao, index) {
+    const inputValor = document.getElementById(`custo-indireto-${index}`);
+    const novoValor = parseFloat(inputValor.value);
+
+    if (!isNaN(novoValor)) {
+        const custoParaAtualizar = custosIndiretosPredefinidos.find(c => c.descricao === descricao);
+        if(custoParaAtualizar){
+            custoParaAtualizar.valorMensal = novoValor;
+        }
+        atualizarTabelaCustosIndiretos();
+        calcularCustos();
+        salvarDados();
+    } else {
+        alert("Por favor, insira um valor numérico válido.");
+    }
+}
 
 function adicionarNovoCustoIndireto() {
     const listaCustos = document.getElementById('lista-custos-indiretos');
@@ -821,6 +1149,7 @@ async function editarProduto(produtoId) {
                     item.quantidade = item.comprimento / materialOriginal.comprimentoCm;
                 } else if (item.tipo === "area") {
                     item.largura = parseFloat(inputsDimensao[0].value) || 0;
+                    item.altura = parseFloat(inputsDimensao[1].value) || 0;
                     item.quantidade = (item.largura * item.altura) / (materialOriginal.larguraCm * materialOriginal.alturaCm);
                 } else if (item.tipo === "litro") {
                     item.volume = parseFloat(inputsDimensao[0].value) || 0;
@@ -1116,7 +1445,7 @@ async function atualizarTabelaPrecificacoesGeradas() {
             const viewButton = document.createElement('button');
             viewButton.textContent = 'Visualizar';
             viewButton.onclick = () => abrirPrecificacaoEmNovaJanela(precificacao.id);
-            actionsCell.appendChild(viewButton);
+            cellAcoes.appendChild(viewButton);
         });
 
     } catch (error) {
@@ -1142,7 +1471,7 @@ function buscarPrecificacoesGeradas() {
         const viewButton = document.createElement('button');
         viewButton.textContent = 'Visualizar';
         viewButton.onclick = () => abrirPrecificacaoEmNovaJanela(precificacao.id);
-        actionsCell.appendChild(viewButton);
+        cellAcoes.appendChild(viewButton);
     });
 }
 
@@ -1153,7 +1482,7 @@ function visualizarPrecificacaoHTML(precificacaoId) {
         return "<p>Precificação não encontrada.</p>";
     }
 
-    let htmlNota = `
+    let htmlTabela = `
         <!DOCTYPE html>
         <html lang="pt-BR">
         <head>
@@ -1241,7 +1570,7 @@ function visualizarPrecificacaoHTML(precificacaoId) {
         </body>
         </html>
     `;
-    return htmlNota;
+    return htmlTabela;
 }
 
 function abrirPrecificacaoEmNovaJanela(precificacaoId) {
@@ -1315,5 +1644,38 @@ async function carregarDados() {
     } catch (error) {
         console.error("Erro ao carregar dados do Firebase:", error);
         alert("Erro ao carregar dados do Firebase. Verifique o console para mais detalhes.");
+    }
+}
+
+function limparPagina() {
+    if (confirm('Tem certeza que deseja limpar todos os dados LOCALMENTE (interface)? Os dados do Firebase NÃO serão apagados.')) {
+        localStorage.removeItem('dadosPrecificacao');
+
+        materiais = [];
+        custosIndiretosAdicionais = [];
+        produtos = [];
+        precificacoesGeradas = [];
+
+        atualizarTabelaMateriaisInsumos();
+        atualizarTabelaCustosIndiretos();
+        atualizarTabelaProdutosCadastrados();
+        atualizarTabelaPrecificacoesGeradas();
+
+        limparFormulario('form-materiais-insumos');
+        limparFormulario('form-mao-de-obra');
+        limparFormulario('form-produtos-cadastrados');
+        document.querySelector('#tabela-materiais-produto tbody').innerHTML = '';
+
+        document.getElementById('salario-receber').value = '';
+        document.getElementById('horas-trabalhadas').value = 220;
+        document.getElementById('incluir-ferias-13o-nao').checked = true;
+        calcularValorHora();
+        calcularCustoFerias13o();
+
+        document.getElementById('margem-lucro-final').value = margemLucroPadrao;
+        document.getElementById('taxa-credito-percentual').value = taxaCredito.percentual;
+        document.getElementById('incluir-taxa-credito-nao').checked = true;
+
+        calcularCustos();
     }
 }
