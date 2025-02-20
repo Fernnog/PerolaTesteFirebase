@@ -56,6 +56,7 @@ let precificacoesGeradas = [];
 let proximoNumeroPrecificacao = 1;
 let produtoEmEdicao = null;
 let usuarioLogado = null;
+let materialEmEdicao = null; // Variável para controlar a edição de materiais
 // ==== FIM SEÇÃO - VARIÁVEIS GLOBAIS ====
 
 // ==== INÍCIO SEÇÃO - FUNÇÕES DE AUTENTICAÇÃO FIREBASE ====
@@ -171,42 +172,6 @@ function calcularCustoUnitario(tipo, valorTotal, comprimentoCm, volumeMl, pesoG,
     return custoUnitario;
 }
 
-async function cadastrarMaterialInsumo() {
-    const nome = document.getElementById('nome-material').value;
-    const tipo = document.querySelector('input[name="tipo-material"]:checked').value;
-    const valorTotal = parseFloat(document.getElementById('valor-total-material').value);
-    const comprimentoCm = (tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0;
-    const volumeMl = (tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0;
-    const pesoG = (tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0;
-    const larguraCm = (tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0;
-    const alturaCm = (tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0;
-
-    const custoUnitario = calcularCustoUnitario(tipo, valorTotal, comprimentoCm, volumeMl, pesoG, larguraCm, alturaCm);
-
-    const material = {
-        nome,
-        tipo,
-        valorTotal,
-        comprimentoCm,
-        volumeMl,
-        pesoG,
-        larguraCm,
-        alturaCm,
-        custoUnitario
-    };
-
-    try {
-        await addDoc(collection(db, "materiais-insumos"), material);
-        atualizarTabelaMateriaisInsumos();
-        limparFormulario('form-materiais-insumos');
-        alert('Material/Insumo cadastrado com sucesso no Firebase!');
-
-    } catch (error) {
-        console.error("Erro ao cadastrar material no Firebase:", error);
-        alert('Erro ao cadastrar material/insumo no Firebase.');
-    }
-}
-
 // Função para atualizar os custos dos produtos que usam um determinado material
 async function atualizarCustosProdutosPorMaterial(material) {
     const produtosImpactados = produtos.filter(produto =>
@@ -234,6 +199,74 @@ async function atualizarCustosProdutosPorMaterial(material) {
          }
      }
 }
+
+async function cadastrarMaterialInsumo() {
+    const nome = document.getElementById('nome-material').value;
+    const tipo = document.querySelector('input[name="tipo-material"]:checked').value;
+    const valorTotal = parseFloat(document.getElementById('valor-total-material').value);
+    const comprimentoCm = (tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0;
+    const volumeMl = (tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0;
+    const pesoG = (tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0;
+    const larguraCm = (tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0;
+    const alturaCm = (tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0;
+
+    const custoUnitario = calcularCustoUnitario(tipo, valorTotal, comprimentoCm, volumeMl, pesoG, larguraCm, alturaCm);
+
+    const material = {
+        nome,
+        tipo,
+        valorTotal,
+        comprimentoCm,
+        volumeMl,
+        pesoG,
+        larguraCm,
+        alturaCm,
+        custoUnitario
+    };
+
+    try {
+        if (materialEmEdicao) {
+            // Modo de Edição: Atualiza o material existente
+            await updateDoc(doc(db, "materiais-insumos", materialEmEdicao.id), {
+                nome: material.nome,
+                tipo: material.tipo,
+                valorTotal: material.valorTotal,
+                comprimentoCm: material.comprimentoCm,
+                volumeMl: material.volumeMl,
+                pesoG: material.pesoG,
+                larguraCm: material.larguraCm,
+                alturaCm: material.alturaCm,
+                custoUnitario: material.custoUnitario
+            });
+
+            // Atualiza o material no array local 'materiais'
+            const index = materiais.findIndex(m => m.id === materialEmEdicao.id);
+            if (index !== -1) {
+                materiais[index] = { id: materialEmEdicao.id, ...material };
+            }
+
+             // Atualiza os custos dos produtos que usam este material
+            await atualizarCustosProdutosPorMaterial(materiais[index]);
+
+            alert('Material/Insumo atualizado com sucesso!');
+            materialEmEdicao = null; // Sai do modo de edição
+
+        } else {
+            // Modo de Cadastro: Adiciona um novo material
+            await addDoc(collection(db, "materiais-insumos"), material);
+            alert('Material/Insumo cadastrado com sucesso no Firebase!');
+        }
+
+        atualizarTabelaMateriaisInsumos();
+        limparFormulario('form-materiais-insumos');
+
+
+    } catch (error) {
+        console.error("Erro ao cadastrar/atualizar material no Firebase:", error);
+        alert('Erro ao cadastrar/atualizar material/insumo no Firebase.');
+    }
+}
+
 
 
 async function atualizarTabelaMateriaisInsumos() {
@@ -343,6 +376,10 @@ async function editarMaterialInsumo(materialId) {
         return;
     }
 
+    // Entra em modo de edição
+    materialEmEdicao = material;
+
+    //Preenche os campos do formulário
     document.getElementById('nome-material').value = material.nome;
     document.querySelector(`input[name="tipo-material"][value="${material.tipo}"]`).checked = true;
     document.getElementById('valor-total-material').value = material.valorTotal;
@@ -362,70 +399,8 @@ async function editarMaterialInsumo(materialId) {
         document.getElementById('largura-cm').value = material.larguraCm;
         document.getElementById('altura-cm').value = material.alturaCm;
     }
-
-    // Remove o material antigo (mas mantem os dados para a atualização)
-    // await removerMaterialInsumo(materialId, true); // Removido, não precisa mais
-
-      try {
-        // Atualiza os dados do material no Firebase
-        await updateDoc(doc(db, "materiais-insumos", materialId), {
-            nome: document.getElementById('nome-material').value,
-            tipo: document.querySelector('input[name="tipo-material"]:checked').value,
-            valorTotal: parseFloat(document.getElementById('valor-total-material').value),
-            comprimentoCm: (material.tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0,
-            volumeMl: (material.tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0,
-            pesoG: (material.tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0,
-            larguraCm: (material.tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0,
-            alturaCm: (material.tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0,
-            custoUnitario: calcularCustoUnitario(
-                document.querySelector('input[name="tipo-material"]:checked').value,
-                parseFloat(document.getElementById('valor-total-material').value),
-                (material.tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0,
-                (material.tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0,
-                (material.tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0,
-                (material.tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0,
-                (material.tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0
-            )
-        });
-
-        // Atualiza o material no array local 'materiais'
-        const index = materiais.findIndex(m => m.id === materialId);
-        if (index !== -1) {
-          materiais[index] = {
-            id: materialId,
-            nome: document.getElementById('nome-material').value,
-            tipo: document.querySelector('input[name="tipo-material"]:checked').value,
-            valorTotal: parseFloat(document.getElementById('valor-total-material').value),
-            comprimentoCm: (material.tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0,
-            volumeMl: (material.tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0,
-            pesoG: (material.tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0,
-            larguraCm: (material.tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0,
-            alturaCm: (material.tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0,
-            custoUnitario: calcularCustoUnitario(
-                document.querySelector('input[name="tipo-material"]:checked').value,
-                parseFloat(document.getElementById('valor-total-material').value),
-                (material.tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0,
-                (material.tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0,
-                (material.tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0,
-                (material.tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0,
-                (material.tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0
-            )
-          };
-        }
-
-
-        // Atualiza os custos dos produtos que usam este material
-        await atualizarCustosProdutosPorMaterial(materiais[index]); // Passa o material atualizado
-
-        // Atualiza a tabela de materiais (após a atualização dos produtos)
-        atualizarTabelaMateriaisInsumos();
-        limparFormulario('form-materiais-insumos');
-        alert('Material/Insumo atualizado com sucesso no Firebase!');
-
-    } catch (error) {
-        console.error("Erro ao atualizar material no Firebase:", error);
-        alert('Erro ao atualizar material/insumo no Firebase.');
-    }
+    //Foco no primeiro campo
+    document.getElementById('nome-material').focus();
 }
 
 async function removerMaterialInsumo(materialId, isEditing = false) {
@@ -673,7 +648,7 @@ async function salvarNovoCustoIndiretoLista(botao) {
                 botao.dataset.id = custoId;
             }
 
-             // Atualiza o array local `custosIndiretosAdicionais`
+                        // Atualiza o array local `custosIndiretosAdicionais`
             const custoExistenteIndex = custosIndiretosAdicionais.findIndex(c => c.tempIndex === index);
             if (custoExistenteIndex !== -1) {
                 custosIndiretosAdicionais[custoExistenteIndex] = { id: custoId, ...custoData };
@@ -1377,7 +1352,7 @@ function calcularCustos() {
     const custoIndiretoTotal = custoIndiretoTotalPorHora * horasProduto;
     document.getElementById('custo-indireto').textContent = formatarMoeda(custoIndiretoTotal);
 
-    const listaCustosIndiretos = document.getElementById('lista-custos-indiretos-detalhes');
+        const listaCustosIndiretos = document.getElementById('lista-custos-indiretos-detalhes');
     listaCustosIndiretos.innerHTML = '';
     custosIndiretosAtivos.forEach(custo => {
         const li = document.createElement('li');
