@@ -7,14 +7,14 @@ import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, q
 
 // ==== INÍCIO SEÇÃO - CONFIGURAÇÃO FIREBASE ====
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY", // Substitua com a sua chave de API
-  authDomain: "your-auth-domain.firebaseapp.com", // Substitua com o seu domínio de autenticação
-  databaseURL: "https://your-database-url.firebaseio.com",  // Substitua com a sua URL de banco de dados
-  projectId: "your-project-id",  // Substitua com o ID do seu projeto
-  storageBucket: "your-storage-bucket.appspot.com",  // Substitua com o seu bucket de armazenamento
-  messagingSenderId: "your-messaging-sender-id", // Substitua com o seu ID de remetente de mensagens
-  appId: "your-app-id", // Substitua com o ID do seu aplicativo
-  measurementId: "your-measurement-id" // Substitua com o seu ID de medição
+    apiKey: "AIzaSyAydkMsxydduoAFD9pdtg_KIFuckA_PIkE",
+    authDomain: "precificacao-64b06.firebaseapp.com",
+    databaseURL: "https://precificacao-64b06-default-rtdb.firebaseio.com",
+    projectId: "precificacao-64b06",
+    storageBucket: "precificacao-64b06.firebasestorage.app",
+    messagingSenderId: "872035099760",
+    appId: "1:872035099760:web:1c1c7d2ef0f442b366c0b5",
+    measurementId: "G-6THHCNMHD6"
 };
 // ==== FIM SEÇÃO - CONFIGURAÇÃO FIREBASE ====
 
@@ -173,15 +173,7 @@ function calcularCustoUnitario(tipo, valorTotal, comprimentoCm, volumeMl, pesoG,
 }
 
 // Função para atualizar os custos dos produtos que usam um determinado material
-async function atualizarCustosProdutosPorMaterial(materialId) {
-    // Encontra o material *atualizado* no array 'materiais'
-    const material = materiais.find(m => m.id === materialId);
-
-    if (!material) {
-        console.warn(`Material com ID ${materialId} não encontrado para atualização de custos.`);
-        return; // Sai da função se o material não for encontrado
-    }
-
+async function atualizarCustosProdutosPorMaterial(material) {
     const produtosImpactados = produtos.filter(produto =>
         produto.materiais.some(item => item.material.nome === material.nome)
     );
@@ -251,12 +243,13 @@ async function cadastrarMaterialInsumo() {
             const index = materiais.findIndex(m => m.id === materialEmEdicao.id);
             if (index !== -1) {
                 materiais[index] = { id: materialEmEdicao.id, ...material };
+                 // Atualiza os custos dos produtos que usam este material
+                await atualizarCustosProdutosPorMaterial(materiais[index]);
             }
+
 
             alert('Material/Insumo atualizado com sucesso!');
             materialEmEdicao = null; // Sai do modo de edição
-             // Atualiza os custos dos produtos que usam este material
-            //  await atualizarCustosProdutosPorMaterial(materiais[index]); Removido
 
         } else {
             // Modo de Cadastro: Adiciona um novo material
@@ -266,9 +259,8 @@ async function cadastrarMaterialInsumo() {
 
         atualizarTabelaMateriaisInsumos();
         limparFormulario('form-materiais-insumos');
-        if(materialEmEdicao){
-            await atualizarCustosProdutosPorMaterial(materialEmEdicao.id);
-        }
+
+
     } catch (error) {
         console.error("Erro ao cadastrar/atualizar material no Firebase:", error);
         alert('Erro ao cadastrar/atualizar material/insumo no Firebase.');
@@ -375,7 +367,7 @@ function buscarMateriaisCadastrados() {
         cellAcoes.appendChild(btnRemover);
     });
 }
-
+// MODIFICADO: editarMaterialInsumo
 async function editarMaterialInsumo(materialId) {
     const material = materiais.find(m => m.id === materialId);
 
@@ -656,7 +648,7 @@ async function salvarNovoCustoIndiretoLista(botao) {
                 botao.dataset.id = custoId;
             }
 
-             // Atualiza o array local `custosIndiretosAdicionais`
+                        // Atualiza o array local `custosIndiretosAdicionais`
             const custoExistenteIndex = custosIndiretosAdicionais.findIndex(c => c.tempIndex === index);
             if (custoExistenteIndex !== -1) {
                 custosIndiretosAdicionais[custoExistenteIndex] = { id: custoId, ...custoData };
@@ -1360,7 +1352,7 @@ function calcularCustos() {
     const custoIndiretoTotal = custoIndiretoTotalPorHora * horasProduto;
     document.getElementById('custo-indireto').textContent = formatarMoeda(custoIndiretoTotal);
 
-    const listaCustosIndiretos = document.getElementById('lista-custos-indiretos-detalhes');
+        const listaCustosIndiretos = document.getElementById('lista-custos-indiretos-detalhes');
     listaCustosIndiretos.innerHTML = '';
     custosIndiretosAtivos.forEach(custo => {
         const li = document.createElement('li');
