@@ -7,14 +7,14 @@ import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, q
 
 // ==== INÍCIO SEÇÃO - CONFIGURAÇÃO FIREBASE ====
 const firebaseConfig = {
-    apiKey: "AIzaSyAydkMsxydduoAFD9pdtg_KIFuckA_PIkE",
-    authDomain: "precificacao-64b06.firebaseapp.com",
-    databaseURL: "https://precificacao-64b06-default-rtdb.firebaseio.com",
-    projectId: "precificacao-64b06",
-    storageBucket: "precificacao-64b06.firebasestorage.app",
-    messagingSenderId: "872035099760",
-    appId: "1:872035099760:web:1c1c7d2ef0f442b366c0b5",
-    measurementId: "G-6THHCNMHD6"
+  apiKey: "AIzaSyAydkMsxydduoAFD9pdtg_KIFuckA_PIkE",
+  authDomain: "precificacao-64b06.firebaseapp.com",
+  databaseURL: "https://precificacao-64b06-default-rtdb.firebaseio.com",
+  projectId: "precificacao-64b06",
+  storageBucket: "precificacao-64b06.firebasestorage.app",
+  messagingSenderId: "872035099760",
+  appId: "1:872035099760:web:1c1c7d2ef0f442b366c0b5",
+  measurementId: "G-6THHCNMHD6"
 };
 // ==== FIM SEÇÃO - CONFIGURAÇÃO FIREBASE ====
 
@@ -173,33 +173,49 @@ function calcularCustoUnitario(tipo, valorTotal, comprimentoCm, volumeMl, pesoG,
 }
 
 // Função para atualizar os custos dos produtos que usam um determinado material
+// MODIFICADA: atualizarCustosProdutosPorMaterial - Usa o ID do material para comparação
 async function atualizarCustosProdutosPorMaterial(material) {
+    if (!material || !material.id) {
+        console.error("Material inválido ou sem ID:", material);
+        return;
+    }
+
     const produtosImpactados = produtos.filter(produto =>
-        produto.materiais.some(item => item.material.nome === material.nome)
+        produto.materiais.some(item => item.materialId === material.id) // Compara pelo ID
     );
 
-    produtosImpactados.forEach(produto => {
-        produto.materiais.forEach(item => {
-            if (item.material.nome === material.nome) {
+    for (const produto of produtosImpactados) {
+        for (const item of produto.materiais) {
+            if (item.materialId === material.id) { // Compara pelo ID
                 item.material.custoUnitario = material.custoUnitario;
                 item.custoTotal = calcularCustoTotalItem(item);
             }
-        });
+        }
         produto.custoTotal = produto.materiais.reduce((total, item) => total + item.custoTotal, 0);
-    });
 
-     // Atualiza a tabela de produtos e a seção de cálculo, se necessário
-     atualizarTabelaProdutosCadastrados();
-     const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
-     if (produtoSelecionadoNome) {
-         const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
-         if (produtoSelecionado) {
-             carregarDadosProduto(produtoSelecionado);
-             calcularCustos();
-         }
-     }
+        // Atualiza no Firestore *cada* produto modificado
+        try {
+            await updateDoc(doc(db, "produtos", produto.id), {
+                materiais: produto.materiais,
+                custoTotal: produto.custoTotal
+            });
+        } catch (error) {
+            console.error("Erro ao atualizar produto no Firestore:", error);
+            // Não interrompe a execução, mas loga o erro
+        }
+    }
+
+    atualizarTabelaProdutosCadastrados();
+    const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
+    if (produtoSelecionadoNome) {
+        const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
+        if (produtoSelecionado) {
+            carregarDadosProduto(produtoSelecionado);
+            calcularCustos();
+        }
+    }
 }
-
+// MODIFICADA: cadastrarMaterialInsumo - Adicionado materialId ao item do produto
 async function cadastrarMaterialInsumo() {
     const nome = document.getElementById('nome-material').value;
     const tipo = document.querySelector('input[name="tipo-material"]:checked').value;
@@ -253,7 +269,12 @@ async function cadastrarMaterialInsumo() {
 
         } else {
             // Modo de Cadastro: Adiciona um novo material
-            await addDoc(collection(db, "materiais-insumos"), material);
+
+            // Adiciona o material e *obtém* o ID gerado
+            const docRef = await addDoc(collection(db, "materiais-insumos"), material);
+            material.id = docRef.id; // Adiciona o ID ao objeto material
+            materiais.push({ id: material.id, ...material }); // Adiciona ao array local com o ID
+
             alert('Material/Insumo cadastrado com sucesso no Firebase!');
         }
 
@@ -648,7 +669,7 @@ async function salvarNovoCustoIndiretoLista(botao) {
                 botao.dataset.id = custoId;
             }
 
-                        // Atualiza o array local `custosIndiretosAdicionais`
+                                  // Atualiza o array local `custosIndiretosAdicionais`
             const custoExistenteIndex = custosIndiretosAdicionais.findIndex(c => c.tempIndex === index);
             if (custoExistenteIndex !== -1) {
                 custosIndiretosAdicionais[custoExistenteIndex] = { id: custoId, ...custoData };
@@ -825,6 +846,7 @@ function buscarCustosIndiretosCadastrados() {
 
 
 // ==== INÍCIO SEÇÃO - FUNÇÕES PRODUTOS CADASTRADOS ====
+//MODIFICADA: cadastrarProduto - Adiciona materialId ao item
 async function cadastrarProduto() {
     const nomeProduto = document.getElementById('nome-produto').value;
     if (!nomeProduto) {
@@ -858,7 +880,15 @@ async function cadastrarProduto() {
 
         const materialOriginal = materiais.find(m => m.nome === nomeMaterial);
 
+         // Verifica se o materialOriginal foi encontrado
+        if (!materialOriginal) {
+            console.error("Material original não encontrado:", nomeMaterial);
+            return; // Sai do loop se o material não for encontrado
+        }
+
+
         const item = {
+            materialId: materialOriginal.id, // Adiciona o ID do material
             material: {
                 nome: materialOriginal.nome,
                 custoUnitario: materialOriginal.custoUnitario
@@ -916,7 +946,7 @@ async function cadastrarProduto() {
 
         // Atualiza a tabela de produtos cadastrados
         atualizarTabelaProdutosCadastrados();
-        //salvarDados(); // Salva os dados no localStorage (opcional)
+        //salvarDados(); // Salva os dados no localStorage (opcional)  - Removido, pois a atualização já ocorre
         produtoEmEdicao = null;
 
 
@@ -925,6 +955,7 @@ async function cadastrarProduto() {
         alert('Erro ao cadastrar/atualizar produto no Firebase.');
     }
 }
+
 async function atualizarTabelaProdutosCadastrados() {
     const tbody = document.querySelector("#tabela-produtos tbody");
     tbody.innerHTML = "";
@@ -1044,6 +1075,8 @@ function buscarProdutosCadastrados() {
         actionsCell.appendChild(removeButton);
     });
 }
+
+//MODIFICADA: adicionarMaterialNaTabelaProduto - Usa o ID do material
 function adicionarMaterialNaTabelaProduto(material, tipo, quantidade, comprimento, largura, altura, volume, peso) {
     const tbody = document.querySelector('#tabela-materiais-produto tbody');
     const row = tbody.insertRow();
@@ -1093,6 +1126,7 @@ function adicionarMaterialNaTabelaProduto(material, tipo, quantidade, compriment
 
     // ---  CRIAÇÃO DO OBJETO ITEM  ---
     const item = {
+      materialId: material.id, // Adiciona o ID do material
       material: {
           nome: material.nome,
           custoUnitario: material.custoUnitario
@@ -1162,6 +1196,7 @@ function removerLinhaMaterial(rowIndex) {
     tbody.deleteRow(rowIndex); //Remove pelo rowIndex
 }
 
+//Mantida: calcularCustoTotalItem
 function calcularCustoTotalItem(item) {
     let custoTotal = 0;
     let quantidade = item.quantidade || 1; // Garante que quantidade seja pelo menos 1
@@ -1182,6 +1217,7 @@ function calcularCustoTotalItem(item) {
     return custoTotal;
 }
 
+//MODIFICADA: editarProduto - Corrige a busca do material completo
 async function editarProduto(produtoId) {
     produtoEmEdicao = produtos.find(p => p.id === produtoId);
 
@@ -1199,19 +1235,25 @@ async function editarProduto(produtoId) {
 
     // Preenche a tabela de materiais com os dados do produto
     produtoEmEdicao.materiais.forEach(item => {
-        // Encontra o material original completo no array 'materiais'
-        const materialCompleto = materiais.find(m => m.nome === item.material.nome);
+        // Encontra o material original completo no array 'materiais' USANDO O ID
+        const materialCompleto = materiais.find(m => m.id === item.materialId);
 
-        adicionarMaterialNaTabelaProduto(
-            materialCompleto,  // Passa o material completo
-            item.tipo,
-            item.quantidade,
-            item.comprimento,  // Passa os valores originais (cm, ml, g, etc.)
-            item.largura,      // Passa os valores originais (cm, ml, g, etc.)
-            item.altura,       // Passa os valores originais (cm, ml, g, etc.)
-            item.volume,       // Passa os valores originais (cm, ml, g, etc.)
-            item.peso          // Passa os valores originais (cm, ml, g, etc.)
-        );
+
+        if (materialCompleto) { //Verifica se achou o material
+            adicionarMaterialNaTabelaProduto(
+                materialCompleto,  // Passa o material completo
+                item.tipo,
+                item.quantidade,
+                item.comprimento,  // Passa os valores originais (cm, ml, g, etc.)
+                item.largura,      // Passa os valores originais (cm, ml, g, etc.)
+                item.altura,       // Passa os valores originais (cm, ml, g, etc.)
+                item.volume,       // Passa os valores originais (cm, ml, g, etc.)
+                item.peso          // Passa os valores originais (cm, ml, g, etc.)
+            );
+        } else{
+            console.error("Material completo não encontrado para item:", item);
+        }
+
     });
 
     // Rola a página para o formulário de cadastro
@@ -1233,6 +1275,7 @@ async function removerProduto(produtoId) {
     }
 }
 // ===== INÍCIO - MODIFICAÇÃO PARA AUTOCOMPLETE DE MATERIAIS =====
+//MODIFICADA: buscarMateriaisAutocomplete, selecionarMaterial -  Usa o ID
 function buscarMateriaisAutocomplete() {
     const termo = document.getElementById('pesquisa-material').value.toLowerCase();
     const resultadosDiv = document.getElementById('resultados-pesquisa');
