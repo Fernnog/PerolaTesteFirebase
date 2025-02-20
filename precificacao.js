@@ -206,6 +206,36 @@ async function cadastrarMaterialInsumo() {
         alert('Erro ao cadastrar material/insumo no Firebase.');
     }
 }
+
+// Função para atualizar os custos dos produtos que usam um determinado material
+async function atualizarCustosProdutosPorMaterial(material) {
+    const produtosImpactados = produtos.filter(produto =>
+        produto.materiais.some(item => item.material.nome === material.nome)
+    );
+
+    produtosImpactados.forEach(produto => {
+        produto.materiais.forEach(item => {
+            if (item.material.nome === material.nome) {
+                item.material.custoUnitario = material.custoUnitario;
+                item.custoTotal = calcularCustoTotalItem(item);
+            }
+        });
+        produto.custoTotal = produto.materiais.reduce((total, item) => total + item.custoTotal, 0);
+    });
+
+     // Atualiza a tabela de produtos e a seção de cálculo, se necessário
+     atualizarTabelaProdutosCadastrados();
+     const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
+     if (produtoSelecionadoNome) {
+         const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
+         if (produtoSelecionado) {
+             carregarDadosProduto(produtoSelecionado);
+             calcularCustos();
+         }
+     }
+}
+
+
 async function atualizarTabelaMateriaisInsumos() {
     const tbody = document.querySelector('#tabela-materiais-insumos tbody');
     tbody.innerHTML = '';
@@ -217,41 +247,7 @@ async function atualizarTabelaMateriaisInsumos() {
             materiais.push({ id: doc.id, ...doc.data() });
         });
 
-        // ---  ATUALIZAÇÃO DOS PRODUTOS  ---
-        for (const material of materiais) {
-            // 1. Encontrar produtos que usam este material
-            const produtosImpactados = produtos.filter(produto =>
-                produto.materiais.some(item => item.material.nome === material.nome)
-            );
-
-            // 2. Atualizar os custos nesses produtos
-            produtosImpactados.forEach(produto => {
-                produto.materiais.forEach(item => {
-                    if (item.material.nome === material.nome) {
-                        // Atualiza o custo unitário do material
-                        item.material.custoUnitario = material.custoUnitario;
-                        // Recalcula o custo total do item (já com a conversão correta)
-                        item.custoTotal = calcularCustoTotalItem(item);
-                    }
-                });
-                // Recalcula o custo total do produto
-                produto.custoTotal = produto.materiais.reduce((total, item) => total + item.custoTotal, 0);
-            });
-        }
-
-        // --- ATUALIZAÇÃO DA TABELA DE PRODUTOS ---
-        atualizarTabelaProdutosCadastrados();
-        // --- ATUALIZAÇÃO DA SEÇÃO DE CÁLCULO DE PRECIFICAÇÃO (se um produto estiver selecionado)
-        const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
-        if (produtoSelecionadoNome) {
-            const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
-            if (produtoSelecionado) {
-                carregarDadosProduto(produtoSelecionado);
-                calcularCustos();
-            }
-        }
-
-              // ---  PREENCHIMENTO DA TABELA DE MATERIAIS (Continuação da função original) ---
+        // ---  PREENCHIMENTO DA TABELA DE MATERIAIS  ---
         materiais.forEach((material) => {
             const row = tbody.insertRow();
 
@@ -367,7 +363,69 @@ async function editarMaterialInsumo(materialId) {
         document.getElementById('altura-cm').value = material.alturaCm;
     }
 
-    await removerMaterialInsumo(materialId, true);
+    // Remove o material antigo (mas mantem os dados para a atualização)
+    // await removerMaterialInsumo(materialId, true); // Removido, não precisa mais
+
+      try {
+        // Atualiza os dados do material no Firebase
+        await updateDoc(doc(db, "materiais-insumos", materialId), {
+            nome: document.getElementById('nome-material').value,
+            tipo: document.querySelector('input[name="tipo-material"]:checked').value,
+            valorTotal: parseFloat(document.getElementById('valor-total-material').value),
+            comprimentoCm: (material.tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0,
+            volumeMl: (material.tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0,
+            pesoG: (material.tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0,
+            larguraCm: (material.tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0,
+            alturaCm: (material.tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0,
+            custoUnitario: calcularCustoUnitario(
+                document.querySelector('input[name="tipo-material"]:checked').value,
+                parseFloat(document.getElementById('valor-total-material').value),
+                (material.tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0,
+                (material.tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0,
+                (material.tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0,
+                (material.tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0,
+                (material.tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0
+            )
+        });
+
+        // Atualiza o material no array local 'materiais'
+        const index = materiais.findIndex(m => m.id === materialId);
+        if (index !== -1) {
+          materiais[index] = {
+            id: materialId,
+            nome: document.getElementById('nome-material').value,
+            tipo: document.querySelector('input[name="tipo-material"]:checked').value,
+            valorTotal: parseFloat(document.getElementById('valor-total-material').value),
+            comprimentoCm: (material.tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0,
+            volumeMl: (material.tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0,
+            pesoG: (material.tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0,
+            larguraCm: (material.tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0,
+            alturaCm: (material.tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0,
+            custoUnitario: calcularCustoUnitario(
+                document.querySelector('input[name="tipo-material"]:checked').value,
+                parseFloat(document.getElementById('valor-total-material').value),
+                (material.tipo === 'comprimento') ? parseFloat(document.getElementById('comprimento-cm').value) : 0,
+                (material.tipo === 'litro') ? parseFloat(document.getElementById('volume-ml').value) : 0,
+                (material.tipo === 'quilo') ? parseFloat(document.getElementById('peso-g').value) : 0,
+                (material.tipo === 'area') ? parseFloat(document.getElementById('largura-cm').value) : 0,
+                (material.tipo === 'area') ? parseFloat(document.getElementById('altura-cm').value) : 0
+            )
+          };
+        }
+
+
+        // Atualiza os custos dos produtos que usam este material
+        await atualizarCustosProdutosPorMaterial(materiais[index]); // Passa o material atualizado
+
+        // Atualiza a tabela de materiais (após a atualização dos produtos)
+        atualizarTabelaMateriaisInsumos();
+        limparFormulario('form-materiais-insumos');
+        alert('Material/Insumo atualizado com sucesso no Firebase!');
+
+    } catch (error) {
+        console.error("Erro ao atualizar material no Firebase:", error);
+        alert('Erro ao atualizar material/insumo no Firebase.');
+    }
 }
 
 async function removerMaterialInsumo(materialId, isEditing = false) {
@@ -1489,7 +1547,7 @@ async function atualizarTabelaPrecificacoesGeradas() {
             const viewButton = document.createElement('button');
             viewButton.textContent = 'Visualizar';
             viewButton.onclick = () => abrirPrecificacaoEmNovaJanela(precificacao.id);
-            actionsCell.appendChild(viewButton); // ছিলো না, এড করতে হবে
+            actionsCell.appendChild(viewButton);
         });
 
     } catch (error) {
