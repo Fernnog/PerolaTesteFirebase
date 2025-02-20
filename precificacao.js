@@ -144,15 +144,8 @@ function limparFormulario(formId) {
     if (form) form.reset();
 }
 
-function calcularCustoTotalItem(item) {
-    let custoTotal = 0;
-    if (item.tipo === "comprimento") custoTotal = item.material.custoUnitario * (item.comprimento / 100);
-    else if (item.tipo === "area") custoTotal = item.material.custoUnitario * (item.largura * item.altura / 10000);
-    else if (item.tipo === "litro") custoTotal = item.material.custoUnitario * (item.volume / 1000);
-    else if (item.tipo === "quilo") custoTotal = item.material.custoUnitario * (item.peso / 1000);
-    else if (item.tipo === "unidade") custoTotal = item.material.custoUnitario * item.quantidade;
-    return custoTotal;
-}
+
+
 // ==== FIM SEÇÃO - FUNÇÕES GERAIS DA PÁGINA ====
 
 // ==== INÍCIO SEÇÃO - FUNÇÕES MATERIAIS E INSUMOS ====
@@ -207,6 +200,7 @@ async function cadastrarMaterialInsumo() {
         atualizarTabelaMateriaisInsumos();
         limparFormulario('form-materiais-insumos');
 
+       /*  //Comentado porque a atualização agora é feita em atualizarTabelaMateriaisInsumos
         const produtosImpactados = produtos.filter(produto =>
             produto.materiais.some(item => item.material.nome === material.nome)
         );
@@ -232,6 +226,7 @@ async function cadastrarMaterialInsumo() {
                 calcularCustos();
             }
         }
+        */
         alert('Material/Insumo cadastrado com sucesso no Firebase!');
 
     } catch (error) {
@@ -239,18 +234,52 @@ async function cadastrarMaterialInsumo() {
         alert('Erro ao cadastrar material/insumo no Firebase.');
     }
 }
-
 async function atualizarTabelaMateriaisInsumos() {
     const tbody = document.querySelector('#tabela-materiais-insumos tbody');
     tbody.innerHTML = '';
 
     try {
         const querySnapshot = await getDocs(collection(db, "materiais-insumos"));
-        materiais = [];
+        materiais = [];  // Limpa o array 'materiais'
         querySnapshot.forEach((doc) => {
             materiais.push({ id: doc.id, ...doc.data() });
         });
 
+        // ---  ATUALIZAÇÃO DOS PRODUTOS  ---
+        for (const material of materiais) {
+            // 1. Encontrar produtos que usam este material
+            const produtosImpactados = produtos.filter(produto =>
+                produto.materiais.some(item => item.material.nome === material.nome)
+            );
+
+            // 2. Atualizar os custos nesses produtos
+            produtosImpactados.forEach(produto => {
+                produto.materiais.forEach(item => {
+                    if (item.material.nome === material.nome) {
+                        // Atualiza o custo unitário do material
+                        item.material.custoUnitario = material.custoUnitario;
+                        // Recalcula o custo total do item (já com a conversão correta)
+                        item.custoTotal = calcularCustoTotalItem(item);
+                    }
+                });
+                // Recalcula o custo total do produto
+                produto.custoTotal = produto.materiais.reduce((total, item) => total + item.custoTotal, 0);
+            });
+        }
+
+        // --- ATUALIZAÇÃO DA TABELA DE PRODUTOS ---
+        atualizarTabelaProdutosCadastrados();
+        // --- ATUALIZAÇÃO DA SEÇÃO DE CÁLCULO DE PRECIFICAÇÃO (se um produto estiver selecionado)
+        const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
+        if (produtoSelecionadoNome) {
+            const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
+            if (produtoSelecionado) {
+                carregarDadosProduto(produtoSelecionado);
+                calcularCustos();
+            }
+        }
+
+        // ---  PREENCHIMENTO DA TABELA DE MATERIAIS (Continuação da função original) ---
         materiais.forEach((material) => {
             const row = tbody.insertRow();
 
@@ -288,8 +317,9 @@ async function atualizarTabelaMateriaisInsumos() {
             cellAcoes.appendChild(btnEditar);
             cellAcoes.appendChild(btnRemover);
         });
+
     } catch (error) {
-        console.error("Erro ao carregar materiais do Firebase:", error);
+        console.error("Erro ao carregar/atualizar materiais do Firebase:", error);
     }
 }
 
@@ -804,21 +834,20 @@ async function cadastrarProduto() {
         const tipoMaterial = linha.cells[1].textContent;
         const custoUnitario = parseFloat(linha.cells[2].textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.'));
 
-        let comprimento, largura, altura, volume, peso, quantidade;
+        // Coleta os valores dos inputs, usando os data-atributos para identificar o tipo
+        let comprimento = 0, largura = 0, altura = 0, volume = 0, peso = 0;
         if (tipoMaterial === "comprimento") {
-            comprimento = parseFloat(linha.querySelector('.dimensoes-input').value);
+            comprimento = parseFloat(linha.querySelector('.dimensoes-input[data-tipo="comprimento"]').value) || 0;
         } else if (tipoMaterial === "area") {
-            largura = parseFloat(linha.querySelectorAll('.dimensoes-input')[0].value);
-            altura = parseFloat(linha.querySelectorAll('.dimensoes-input')[1].value);
+            largura = parseFloat(linha.querySelector('.dimensoes-input[data-tipo="largura"]').value) || 0;
+            altura = parseFloat(linha.querySelector('.dimensoes-input[data-tipo="altura"]').value) || 0;
         } else if (tipoMaterial === "litro") {
-            volume = parseFloat(linha.querySelector('.dimensoes-input').value);
+            volume = parseFloat(linha.querySelector('.dimensoes-input[data-tipo="volume"]').value) || 0;
         } else if (tipoMaterial === "quilo") {
-            peso = parseFloat(linha.querySelector('.dimensoes-input').value);
-        } else if (tipoMaterial === "unidade") {
-            quantidade = parseFloat(linha.querySelector('.dimensoes-input').value);
+            peso = parseFloat(linha.querySelector('.dimensoes-input[data-tipo="peso"]').value) || 0;
         }
+        const quantidade = parseFloat(linha.querySelector('.quantidade-input').value) || 0;
 
-        quantidade = parseFloat(linha.querySelector('.quantidade-input').value);
 
         const materialOriginal = materiais.find(m => m.nome === nomeMaterial);
 
@@ -828,15 +857,24 @@ async function cadastrarProduto() {
                 custoUnitario: materialOriginal.custoUnitario
             },
             tipo: tipoMaterial,
-            comprimento,
-            largura,
-            altura,
-            volume,
-            peso,
-            quantidade,
+            comprimento,  // Valores originais (cm, ml, g, etc.)
+            largura,      // Valores originais (cm, ml, g, etc.)
+            altura,       // Valores originais (cm, ml, g, etc.)
+            volume,       // Valores originais (cm, ml, g, etc.)
+            peso,          // Valores originais (cm, ml, g, etc.)
+            quantidade,     // Quantidade
+            custoTotal: calcularCustoTotalItem({ // Passa o objeto item completo
+                material: materialOriginal,
+                tipo: tipoMaterial,
+                comprimento,
+                largura,
+                altura,
+                volume,
+                peso,
+                quantidade
+            })
         };
 
-        item.custoTotal = calcularCustoTotalItem(item);
         materiaisProduto.push(item);
     });
 
@@ -848,25 +886,34 @@ async function cadastrarProduto() {
         custoTotal: custoTotalProduto
     };
 
+
     try {
         if (produtoEmEdicao !== null) {
-            alert("Edição de produtos existente no Firebase ainda não implementada neste exemplo.");
-            return;
+            // --- LÓGICA DE EDIÇÃO ---
+            await updateDoc(doc(db, "produtos", produtoEmEdicao.id), produtoData);
+            alert('Produto atualizado com sucesso no Firebase!');
+
         } else {
-            await addDoc(collection(db, "produtos"), produtoData);
+            // --- LÓGICA DE CADASTRO ---
+            const docRef = await addDoc(collection(db, "produtos"), produtoData);
+            produtoData.id = docRef.id; // Adiciona o ID ao objeto local
+            produtos.push(produtoData); // Adiciona o novo produto ao array local
+            alert('Produto cadastrado com sucesso no Firebase!');
         }
 
+        // Limpa o formulário e a tabela
         document.getElementById('form-produtos-cadastrados').reset();
         document.querySelector('#tabela-materiais-produto tbody').innerHTML = '';
 
+        // Atualiza a tabela de produtos cadastrados
         atualizarTabelaProdutosCadastrados();
-        salvarDados();
+        //salvarDados(); // Salva os dados no localStorage (opcional)
         produtoEmEdicao = null;
-        alert('Produto cadastrado com sucesso no Firebase!');
+
 
     } catch (error) {
-        console.error("Erro ao cadastrar produto no Firebase:", error);
-        alert('Erro ao cadastrar produto no Firebase.');
+        console.error("Erro ao cadastrar/atualizar produto no Firebase:", error);
+        alert('Erro ao cadastrar/atualizar produto no Firebase.');
     }
 }
 async function atualizarTabelaProdutosCadastrados() {
@@ -988,7 +1035,6 @@ function buscarProdutosCadastrados() {
         actionsCell.appendChild(removeButton);
     });
 }
-
 function adicionarMaterialNaTabelaProduto(material, tipo, quantidade, comprimento, largura, altura, volume, peso) {
     const tbody = document.querySelector('#tabela-materiais-produto tbody');
     const row = tbody.insertRow();
@@ -999,68 +1045,178 @@ function adicionarMaterialNaTabelaProduto(material, tipo, quantidade, compriment
 
     const dimensoesCell = row.insertCell();
     let dimensoesHTML = "";
-    let quantidadeValue = '';
-    let comprimentoValue = '';
-    let larguraValue = '';
-    let alturaValue = '';
-    let volumeValue = '';
-    let pesoValue = '';
+    let quantidadeValue = isNaN(quantidade) ? 1 : quantidade; // Valor padrão e tratamento para NaN
+    let comprimentoValue = comprimento || 0;  //Inicializa com zero
+    let larguraValue = largura || 0; //Inicializa com zero
+    let alturaValue = altura || 0;   //Inicializa com zero
+    let volumeValue = volume || 0; //Inicializa com zero
+    let pesoValue = peso || 0;  //Inicializa com zero
 
+
+    // Cria os inputs e já define os valores e event listeners para atualização
     if (tipo === "comprimento") {
-        comprimentoValue = material.comprimentoCm / 100; // Default to 1 metro
-        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${comprimentoValue}"> cm`;
+        comprimentoValue = material.comprimentoCm; // Valor inicial em CM
+        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${comprimentoValue}" data-tipo="comprimento"> cm`;
     } else if (tipo === "area") {
-        larguraValue = material.larguraCm / 100; // Default to 1 metro
-        alturaValue = material.alturaCm / 100; // Default to 1 metro
-        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${larguraValue}"> x <input type="number" class="dimensoes-input" value="${alturaValue}"> cm`;
+        larguraValue = material.larguraCm;
+        alturaValue = material.alturaCm;
+        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${larguraValue}" data-tipo="largura"> x <input type="number" class="dimensoes-input" value="${alturaValue}" data-tipo="altura"> cm`;
     } else if (tipo === "litro") {
-        volumeValue = material.volumeMl / 1000; // Default to 1 litro
-        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${volumeValue}"> ml`;
+        volumeValue = material.volumeMl;
+        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${volumeValue}" data-tipo="volume"> ml`;
     } else if (tipo === "quilo") {
-        pesoValue = material.pesoG / 1000; // Default to 1 kg
-        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${pesoValue}"> g`;
+        pesoValue = material.pesoG;
+        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${pesoValue}" data-tipo="peso"> g`;
     } else if (tipo === "unidade") {
-        quantidadeValue = 1; // Default to 1 unit
-        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${quantidadeValue}"> un`;
+        quantidadeValue = quantidade || 1; // Usa a quantidade passada, ou 1 como padrão
+        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${quantidadeValue}" data-tipo="quantidade"> un`;
     }
     dimensoesCell.innerHTML = dimensoesHTML;
-
 
     const quantidadeCell = row.insertCell();
     const quantidadeInput = document.createElement("input");
     quantidadeInput.type = "number";
     quantidadeInput.classList.add("quantidade-input");
-    quantidadeInput.value = 1; // Default quantity for product usage is 1
+    quantidadeInput.value = quantidadeValue;
     quantidadeCell.appendChild(quantidadeInput);
 
+
+    // ---  CRIAÇÃO DO OBJETO ITEM  ---
     const item = {
       material: {
           nome: material.nome,
           custoUnitario: material.custoUnitario
       },
       tipo: tipo,
-      comprimento: comprimentoValue,
-      largura: larguraValue,
-      altura: alturaValue,
-      volume: volumeValue,
-      peso: pesoValue,
-      quantidade: 1 // Default quantity for product usage is 1
-    }
+      comprimento: comprimentoValue,  //Armazena o valor em CM
+      largura: larguraValue,         //Armazena o valor em CM
+      altura: alturaValue,            //Armazena o valor em CM
+      volume: volumeValue,            //Armazena o valor em ML
+      peso: pesoValue,               //Armazena o valor em G
+      quantidade: quantidadeValue  // Quantidade utilizada
+    };
 
+    // --- CÁLCULO INICIAL DO CUSTO TOTAL ---
     const custoTotal = calcularCustoTotalItem(item);
     row.insertCell().textContent = formatarMoeda(custoTotal);
 
+    // --- BOTÃO REMOVER ---
     const actionsCell = row.insertCell();
     const removeButton = document.createElement('button');
     removeButton.textContent = "Remover";
-    removeButton.onclick = () => removerLinhaMaterial(tbody.rows.length -1);
+    removeButton.onclick = () => removerLinhaMaterial(row.rowIndex -1);  //Passa o Index correto
     actionsCell.appendChild(removeButton);
+
+
+    // --- EVENT LISTENERS PARA ATUALIZAÇÃO ---
+    // Adiciona event listeners para recalcular o custo quando as dimensões/quantidade mudarem
+    dimensoesCell.querySelectorAll('.dimensoes-input').forEach(input => {
+        input.addEventListener('input', () => atualizarCustoLinha(row, item));
+    });
+    quantidadeInput.addEventListener('input', () => atualizarCustoLinha(row, item));
+
 
      document.getElementById('pesquisa-material').value = '';
      document.getElementById('resultados-pesquisa').innerHTML = '';
      document.getElementById('resultados-pesquisa').style.display = 'none';
 }
 
+// --- FUNÇÃO AUXILIAR: atualizarCustoLinha ---
+function atualizarCustoLinha(row, item) {
+    // Atualiza os valores no objeto 'item' com base nos inputs
+    item.quantidade = parseFloat(row.querySelector('.quantidade-input').value) || 0;
+
+    if (item.tipo === "comprimento") {
+        item.comprimento = parseFloat(row.querySelector('.dimensoes-input[data-tipo="comprimento"]').value) || 0;
+    } else if (item.tipo === "area") {
+        item.largura = parseFloat(row.querySelector('.dimensoes-input[data-tipo="largura"]').value) || 0;
+        item.altura = parseFloat(row.querySelector('.dimensoes-input[data-tipo="altura"]').value) || 0;
+    } else if (item.tipo === "litro") {
+        item.volume = parseFloat(row.querySelector('.dimensoes-input[data-tipo="volume"]').value) || 0;
+    } else if (item.tipo === "quilo") {
+        item.peso = parseFloat(row.querySelector('.dimensoes-input[data-tipo="peso"]').value) || 0;
+    }
+    // Para "unidade", a quantidade já foi atualizada
+
+    // Recalcula o custo total
+    const novoCustoTotal = calcularCustoTotalItem(item);
+    row.cells[5].textContent = formatarMoeda(novoCustoTotal); // Atualiza a célula de custo total
+}
+
+// --- FUNÇÃO AUXILIAR: removerLinhaMaterial ---
+function removerLinhaMaterial(rowIndex) {
+    const tbody = document.querySelector('#tabela-materiais-produto tbody');
+    tbody.deleteRow(rowIndex); //Remove pelo rowIndex
+}
+
+function calcularCustoTotalItem(item) {
+    let custoTotal = 0;
+    let quantidade = item.quantidade || 1; // Garante que quantidade seja pelo menos 1
+
+    if (item.tipo === "comprimento") {
+        custoTotal = item.material.custoUnitario * (item.comprimento / 100) * quantidade;
+    } else if (item.tipo === "area") {
+        custoTotal = item.material.custoUnitario * (item.largura * item.altura / 10000) * quantidade;
+    } else if (item.tipo === "litro") {
+        custoTotal = item.material.custoUnitario * (item.volume / 1000) * quantidade;
+    } else if (item.tipo === "quilo") {
+        custoTotal = item.material.custoUnitario * (item.peso / 1000) * quantidade;
+    } else if (item.tipo === "unidade") {
+        custoTotal = item.material.custoUnitario * quantidade;
+    }
+    return custoTotal;
+}
+
+async function editarProduto(produtoId) {
+    produtoEmEdicao = produtos.find(p => p.id === produtoId);
+
+    if (!produtoEmEdicao) {
+        alert('Produto não encontrado para edição.');
+        return;
+    }
+
+    // Preenche o campo de nome do produto
+    document.getElementById('nome-produto').value = produtoEmEdicao.nome;
+
+    // Limpa a tabela de materiais atual
+    const tbody = document.querySelector('#tabela-materiais-produto tbody');
+    tbody.innerHTML = '';
+
+    // Preenche a tabela de materiais com os dados do produto
+    produtoEmEdicao.materiais.forEach(item => {
+        // Encontra o material original completo no array 'materiais'
+        const materialCompleto = materiais.find(m => m.nome === item.material.nome);
+
+        adicionarMaterialNaTabelaProduto(
+            materialCompleto,  // Passa o material completo
+            item.tipo,
+            item.quantidade,
+            item.comprimento,  // Passa os valores originais (cm, ml, g, etc.)
+            item.largura,      // Passa os valores originais (cm, ml, g, etc.)
+            item.altura,       // Passa os valores originais (cm, ml, g, etc.)
+            item.volume,       // Passa os valores originais (cm, ml, g, etc.)
+            item.peso          // Passa os valores originais (cm, ml, g, etc.)
+        );
+    });
+
+    // Rola a página para o formulário de cadastro
+    document.getElementById('form-produtos-cadastrados').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function removerProduto(produtoId) {
+    if (confirm('Tem certeza que deseja remover este produto?')) {
+        try {
+            await deleteDoc(doc(db, "produtos", produtoId));
+            // Remove o produto do array local 'produtos'
+            produtos = produtos.filter(p => p.id !== produtoId);
+            atualizarTabelaProdutosCadastrados();
+            alert('Produto removido com sucesso do Firebase!');
+        } catch (error) {
+            console.error("Erro ao remover produto do Firebase:", error);
+            alert('Erro ao remover produto do Firebase.');
+        }
+    }
+}
 // ===== INÍCIO - MODIFICAÇÃO PARA AUTOCOMPLETE DE MATERIAIS =====
 function buscarMateriaisAutocomplete() {
     const termo = document.getElementById('pesquisa-material').value.toLowerCase();
@@ -1312,7 +1468,7 @@ async function gerarNotaPrecificacao() {
 
     try {
         await addDoc(collection(db, "precificacoes-geradas"), precificacao);
-        precificacoesGeradas.push(precificacoes);
+        precificacoesGeradas.push(precificacao); //Adicionado para incluir no array local
         atualizarTabelaPrecificacoesGeradas();
         salvarDados();
         alert('Nota de precificação gerada e salva no Firebase!');
@@ -1351,7 +1507,7 @@ async function atualizarTabelaPrecificacoesGeradas() {
             const viewButton = document.createElement('button');
             viewButton.textContent = 'Visualizar';
             viewButton.onclick = () => abrirPrecificacaoEmNovaJanela(precificacao.id);
-            cellAcoes.appendChild(viewButton);
+            actionsCell.appendChild(viewButton); // ছিলো না, এড করতে হবে
         });
 
     } catch (error) {
@@ -1377,7 +1533,7 @@ function buscarPrecificacoesGeradas() {
         const viewButton = document.createElement('button');
         viewButton.textContent = 'Visualizar';
         viewButton.onclick = () => abrirPrecificacaoEmNovaJanela(precificacao.id);
-        cellAcoes.appendChild(viewButton);
+        actionsCell.appendChild(viewButton);
     });
 }
 
