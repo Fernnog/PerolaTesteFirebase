@@ -199,34 +199,6 @@ async function cadastrarMaterialInsumo() {
         await addDoc(collection(db, "materiais-insumos"), material);
         atualizarTabelaMateriaisInsumos();
         limparFormulario('form-materiais-insumos');
-
-       /*  //Comentado porque a atualização agora é feita em atualizarTabelaMateriaisInsumos
-        const produtosImpactados = produtos.filter(produto =>
-            produto.materiais.some(item => item.material.nome === material.nome)
-        );
-
-        produtosImpactados.forEach(produto => {
-            produto.materiais.forEach(item => {
-                if (item.material.nome === material.nome && item.tipo === material.tipo) {
-                    item.material.custoUnitario = material.custoUnitario;
-                    item.custoTotal = calcularCustoTotalItem(item);
-                }
-            });
-            produto.custoTotal = produto.materiais.reduce((total, item) => total + item.custoTotal, 0);
-        });
-
-        salvarDados();
-        atualizarTabelaProdutosCadastrados();
-
-        const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
-        if(produtoSelecionadoNome){
-            const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
-            if(produtoSelecionado){
-                carregarDadosProduto(produtoSelecionado);
-                calcularCustos();
-            }
-        }
-        */
         alert('Material/Insumo cadastrado com sucesso no Firebase!');
 
     } catch (error) {
@@ -279,7 +251,7 @@ async function atualizarTabelaMateriaisInsumos() {
             }
         }
 
-        // ---  PREENCHIMENTO DA TABELA DE MATERIAIS (Continuação da função original) ---
+              // ---  PREENCHIMENTO DA TABELA DE MATERIAIS (Continuação da função original) ---
         materiais.forEach((material) => {
             const row = tbody.insertRow();
 
@@ -835,7 +807,7 @@ async function cadastrarProduto() {
         const custoUnitario = parseFloat(linha.cells[2].textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.'));
 
         // Coleta os valores dos inputs, usando os data-atributos para identificar o tipo
-        let comprimento = 0, largura = 0, altura = 0, volume = 0, peso = 0;
+        let comprimento = 0, largura = 0, altura = 0, volume = 0, peso = 0, quantidadeMaterial = 0;
         if (tipoMaterial === "comprimento") {
             comprimento = parseFloat(linha.querySelector('.dimensoes-input[data-tipo="comprimento"]').value) || 0;
         } else if (tipoMaterial === "area") {
@@ -845,6 +817,8 @@ async function cadastrarProduto() {
             volume = parseFloat(linha.querySelector('.dimensoes-input[data-tipo="volume"]').value) || 0;
         } else if (tipoMaterial === "quilo") {
             peso = parseFloat(linha.querySelector('.dimensoes-input[data-tipo="peso"]').value) || 0;
+        } else if (tipoMaterial === "unidade") {
+            quantidadeMaterial = parseFloat(linha.querySelector('.dimensoes-input[data-tipo="quantidadeMaterial"]').value) || 0;
         }
         const quantidade = parseFloat(linha.querySelector('.quantidade-input').value) || 0;
 
@@ -863,6 +837,7 @@ async function cadastrarProduto() {
             volume,       // Valores originais (cm, ml, g, etc.)
             peso,          // Valores originais (cm, ml, g, etc.)
             quantidade,     // Quantidade
+            quantidadeMaterial, // Quantidade do material *dentro* do produto
             custoTotal: calcularCustoTotalItem({ // Passa o objeto item completo
                 material: materialOriginal,
                 tipo: tipoMaterial,
@@ -871,7 +846,8 @@ async function cadastrarProduto() {
                 altura,
                 volume,
                 peso,
-                quantidade
+                quantidade,
+                quantidadeMaterial
             })
         };
 
@@ -956,7 +932,7 @@ async function atualizarTabelaProdutosCadastrados() {
                 } else if (item.tipo === "quilo") {
                     dimensaoTexto = `${item.peso} g`;
                 } else if (item.tipo === "unidade") {
-                    dimensaoTexto = `${item.quantidade} un`;
+                    dimensaoTexto = `${item.quantidadeMaterial} un`; // Modificado para quantidadeMaterial
                 }
                 listItem.textContent = `${item.material.nome}: ${dimensaoTexto}`;
                 dimensoesList.appendChild(listItem);
@@ -1015,7 +991,7 @@ function buscarProdutosCadastrados() {
             } else if (item.tipo === "quilo") {
                 dimensaoTexto = `${item.peso} g`;
             } else if (item.tipo === "unidade") {
-                dimensaoTexto = `${item.quantidade} un`;
+                dimensaoTexto = `${item.quantidadeMaterial} un`; // Corrigido
             }
             listItem.textContent = `${item.material.nome}: ${dimensaoTexto}`;
             dimensoesList.appendChild(listItem);
@@ -1051,10 +1027,10 @@ function adicionarMaterialNaTabelaProduto(material, tipo, quantidade, compriment
     let alturaValue = altura || 0;   //Inicializa com zero
     let volumeValue = volume || 0; //Inicializa com zero
     let pesoValue = peso || 0;  //Inicializa com zero
+    let quantidadeMaterialValue = 1; // Inicializa quantidadeMaterial
 
 
-    // Cria os inputs e já define os valores e event listeners para atualização
-    if (tipo === "comprimento") {
+     if (tipo === "comprimento") {
         comprimentoValue = material.comprimentoCm; // Valor inicial em CM
         dimensoesHTML = `<input type="number" class="dimensoes-input" value="${comprimentoValue}" data-tipo="comprimento"> cm`;
     } else if (tipo === "area") {
@@ -1069,7 +1045,8 @@ function adicionarMaterialNaTabelaProduto(material, tipo, quantidade, compriment
         dimensoesHTML = `<input type="number" class="dimensoes-input" value="${pesoValue}" data-tipo="peso"> g`;
     } else if (tipo === "unidade") {
         quantidadeValue = quantidade || 1; // Usa a quantidade passada, ou 1 como padrão
-        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${quantidadeValue}" data-tipo="quantidade"> un`;
+        dimensoesHTML = `<input type="number" class="dimensoes-input" value="${quantidadeValue}" data-tipo="quantidadeMaterial"> un`; // Mudança aqui
+        quantidadeMaterialValue = quantidadeValue; // Atualiza quantidadeMaterial
     }
     dimensoesCell.innerHTML = dimensoesHTML;
 
@@ -1093,7 +1070,8 @@ function adicionarMaterialNaTabelaProduto(material, tipo, quantidade, compriment
       altura: alturaValue,            //Armazena o valor em CM
       volume: volumeValue,            //Armazena o valor em ML
       peso: pesoValue,               //Armazena o valor em G
-      quantidade: quantidadeValue  // Quantidade utilizada
+      quantidade: quantidadeValue,  // Quantidade utilizada
+      quantidadeMaterial: quantidadeMaterialValue // Adiciona quantidadeMaterial
     };
 
     // --- CÁLCULO INICIAL DO CUSTO TOTAL ---
@@ -1135,8 +1113,10 @@ function atualizarCustoLinha(row, item) {
         item.volume = parseFloat(row.querySelector('.dimensoes-input[data-tipo="volume"]').value) || 0;
     } else if (item.tipo === "quilo") {
         item.peso = parseFloat(row.querySelector('.dimensoes-input[data-tipo="peso"]').value) || 0;
+    } else if (item.tipo === "unidade") {
+        item.quantidadeMaterial = parseFloat(row.querySelector('.dimensoes-input[data-tipo="quantidadeMaterial"]').value) || 0; // Atualiza quantidadeMaterial
     }
-    // Para "unidade", a quantidade já foi atualizada
+
 
     // Recalcula o custo total
     const novoCustoTotal = calcularCustoTotalItem(item);
@@ -1162,7 +1142,9 @@ function calcularCustoTotalItem(item) {
     } else if (item.tipo === "quilo") {
         custoTotal = item.material.custoUnitario * (item.peso / 1000) * quantidade;
     } else if (item.tipo === "unidade") {
-        custoTotal = item.material.custoUnitario * quantidade;
+        // Aqui está a mudança:
+        let quantidadeMaterial = item.quantidadeMaterial || 1; // Quantidade do material *dentro* do produto.
+        custoTotal = item.material.custoUnitario * quantidadeMaterial * quantidade;
     }
     return custoTotal;
 }
@@ -1825,6 +1807,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSalvarMaoDeObra = document.getElementById('btn-salvar-mao-de-obra');
     if (btnSalvarMaoDeObra) {
         btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra);
+    }
+
+     // Botão "Cadastrar Produto" -  (Proposta 1)
+    const btnCadastrarProduto = document.getElementById('cadastrar-produto-btn');
+    if (btnCadastrarProduto) {
+        btnCadastrarProduto.addEventListener('click', cadastrarProduto);
     }
 
     // ===== INÍCIO - EVENT LISTENER PARA AUTOCOMPLETE DE MATERIAIS =====
