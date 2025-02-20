@@ -36,10 +36,10 @@
 <div id="app-container" style="display: none;">
     <header>
         <div class="top-bar">
-            <div class="top-bar-content">  <!--  **NOVO CONTAINER AQUI** -->
+            <div class="top-bar-content">
                 <div id="user-info" class="user-info"></div>
                 <button type="button" id="logoutBtn" class="logout-button">Sair</button>
-            </div> <!--  **FIM DO NOVO CONTAINER** -->
+            </div>
         </div>
         <div class="logo-container">
             <img src="logo_perola_rara.png" alt="Logo Pérola Rara" id="logo">
@@ -62,13 +62,11 @@
     <!-- Seção Materiais e Insumos -->
     <section id="materiais-insumos" class="subpagina" style="display: none;">
         <h2 id="titulo-materiais-insumos">Cadastro de Materiais e Insumos</h2>
-        <!--  *** AVISO ADICIONADO AQUI - MATERIAIS E INSUMOS *** -->
         <hr class="aviso-separador">
         <p class="aviso-unidades">
             <strong>Atenção:</strong> Ao adicionar materiais, preencha as dimensões em <span style="color: #5a8289;">centímetros (cm)</span> para materiais do tipo "Área" e "Comprimento".  Para os tipos "Litro", "Quilo" e "Unidade", insira a quantidade diretamente nas unidades correspondentes (L, kg, un).
         </p>
         <hr class="aviso-separador">
-        <!--  *** FIM DO AVISO - MATERIAIS E INSUMOS *** -->
         <form id="form-materiais-insumos">
             <div class="form-group">
                 <label for="nome-material">Nome do Material:</label>
@@ -205,15 +203,11 @@
                 <input type="text" id="pesquisa-material" name="pesquisa-material" placeholder="Pesquisar...">
                 <div id="resultados-pesquisa"></div>
             </div>
-
-            <!--  *** AVISO ADICIONADO AQUI *** -->
             <hr class="aviso-separador">
             <p class="aviso-unidades">
                 <strong>Atenção:</strong> Ao adicionar materiais, preencha as dimensões em <span style="color: #5a82a9;">centímetros (cm)</span> para materiais do tipo "Área" e "Comprimento".  Para os tipos "Litro", "Quilo" e "Unidade", insira a quantidade diretamente nas unidades correspondentes (L, kg, un).
             </p>
             <hr class="aviso-separador">
-            <!--  *** FIM DO AVISO *** -->
-
             <table id="tabela-materiais-produto" class="tabela-gerada">
                 <thead>
                     <tr>
@@ -229,7 +223,8 @@
                 <tbody>
                 </tbody>
             </table>
-            <button type="button" onclick="cadastrarProduto()">Cadastrar Produto</button>
+            <!--  <button type="button" onclick="cadastrarProduto()">Cadastrar Produto</button>  Removido o onclick -->
+            <button type="button" id="cadastrar-produto-btn">Cadastrar Produto</button> <!-- Adicionado ID -->
         </form>
         <h2>Produtos Cadastrados</h2>
         <div class="form-group">
@@ -240,7 +235,7 @@
                 <tr>
                     <th>Nome do Produto</th>
                     <th>Materiais Utilizados</th>
-                    <th>Custos/Dimensões do Produto</th>  <!-- NOVO CAMPO -->
+                    <th>Custos/Dimensões do Produto</th>
                     <th>Custo Total dos Materiais (R$)</th>
                     <th>Ações</th>
                 </tr>
@@ -254,14 +249,10 @@
     <!-- Seção Cálculo da Precificação -->
     <section id="calculo-precificacao" class="subpagina">
         <h2>Cálculo da Precificação</h2>
-
-        <!-- **NOVO CAMPO: Nome do Cliente** -->
         <div class="form-group">
             <label for="nome-cliente">Nome do Cliente (Opcional):</label>
             <input type="text" id="nome-cliente" name="nome-cliente" placeholder="Insira o nome do cliente">
         </div>
-        <!-- **FIM DO NOVO CAMPO** -->
-
         <div class="calculation-container">
             <div class="section">
                 <label for="produto-pesquisa">Pesquisar Produto:</label>
@@ -270,12 +261,9 @@
                 <span class="bracket">}</span>
                 <span id="custo-produto">R$ 0,00</span>
             </div>
-
-            <!-- Lista de Materiais do Produto -->
             <div id="detalhes-produto" style="display: none;">
                 <h3>Materiais do Produto:</h3>
                 <ul id="lista-materiais-produto">
-                    <!-- Os materiais serão listados aqui -->
                 </ul>
             </div>
 
@@ -283,7 +271,6 @@
                 <label for="horas-produto">Horas para Concluir o Produto:</label>
                 <input type="number" id="horas-produto" value="1" min="1" onchange="calcularCustos()">
                 <span class="bracket">}</span>
-                <!-- Detalhes da Mão de Obra (Agrupados) -->
                 <div id="detalhes-mao-de-obra">
                   <div class="custo-detalhe">
                     <span>Custo Mão de Obra:</span>
@@ -299,31 +286,22 @@
                     </div>
                 </div>
             </div>
-
-
             <div class="section">
                 <label>Custos Indiretos (por hora):</label>
                  <span class="bracket">}</span>
                 <span id="custo-indireto">R$ 0,00</span>
              </div>
-
-            <!-- Lista de Custos Indiretos Detalhados -->
             <div id="detalhes-custos-indiretos">
                 <h3>Custos Indiretos Detalhados:</h3>
                 <ul id="lista-custos-indiretos-detalhes">
-                    <!-- Os custos indiretos detalhados serão listados aqui -->
                 </ul>
             </div>
-
-
             <hr class="subtotal-line">
 
             <div class="section subtotal">
                 <span>Subtotal:</span>
                 <span id="subtotal">R$ 0,00</span>
             </div>
-
-            <!-- Valor da Margem de Lucro -->
             <div class="section">
                 <span>Margem de Lucro:</span>
                 <span id="margem-lucro-valor">R$ 0,00</span>
@@ -340,8 +318,6 @@
             </div>
 
             <hr class="total-line">
-
-    		<!-- Taxa de Compra a Crédito -->
     		<div class="section">
     			<span>Taxa de Compra a Crédito:</span>
     			<span id="taxa-credito-valor">R$ 0,00</span>
@@ -359,17 +335,10 @@
     			<span id="total-final-com-taxas">R$ 0,00</span>
     		</div>
         </div>
-
-        <!-- **NOVO BOTÃO: Gerar Nota de Precificação** -->
         <div style="text-align: center; margin-top: 20px;">
             <button type="button" onclick="gerarNotaPrecificacao()">Gerar Nota de Precificação</button>
         </div>
-        <!-- **FIM DO NOVO BOTÃO** -->
-
     </section>
-    <!-- Fim da Seção Cálculo da Precificação -->
-
-    <!-- Seção Precificações Geradas -->
     <section id="precificacoes-geradas" class="subpagina" style="display: none;">
         <h2>Precificações Geradas</h2>
 
@@ -386,22 +355,15 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Precificações geradas serão listadas aqui -->
             </tbody>
         </table>
-
-        <!-- *** CONTAINER PARA DETALHE DA PRECIFICAÇÃO (ADICIONADO) *** -->
         <div id="detalhe-precificacao-container" style="display: none; margin-top: 20px;">
-            <!-- A tabela detalhada da precificação será inserida aqui pelo Javascript -->
         </div>
-        <!-- *** FIM DO CONTAINER *** -->
-
     </section>
-    <!-- Fim da Seção Precificações Geradas -->
 </div>
 
 
-<script src="precificacao.js" type="module"></script> <!-- Script Local - COM type="module" -->
+<script src="precificacao.js" type="module"></script>
 
 </body>
 </html>
