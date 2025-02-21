@@ -7,14 +7,14 @@ import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, q
 
 // ==== INÍCIO SEÇÃO - CONFIGURAÇÃO FIREBASE ====
 const firebaseConfig = {
-  apiKey: "AIzaSyAydkMsxydduoAFD9pdtg_KIFuckA_PIkE",
-  authDomain: "precificacao-64b06.firebaseapp.com",
-  databaseURL: "https://precificacao-64b06-default-rtdb.firebaseio.com",
-  projectId: "precificacao-64b06",
-  storageBucket: "precificacao-64b06.firebasestorage.app",
-  messagingSenderId: "872035099760",
-  appId: "1:872035099760:web:1c1c7d2ef0f442b366c0b5",
-  measurementId: "G-6THHCNMHD6"
+    apiKey: "AIzaSyAydkMsxydduoAFD9pdtg_KIFuckA_PIkE",
+    authDomain: "precificacao-64b06.firebaseapp.com",
+    databaseURL: "https://precificacao-64b06-default-rtdb.firebaseio.com",
+    projectId: "precificacao-64b06",
+    storageBucket: "precificacao-64b06.firebasestorage.app",
+    messagingSenderId: "872035099760",
+    appId: "1:872035099760:web:1c1c7d2ef0f442b366c0b5",
+    measurementId: "G-6THHCNMHD6"
 };
 // ==== FIM SEÇÃO - CONFIGURAÇÃO FIREBASE ====
 
@@ -215,7 +215,7 @@ async function atualizarCustosProdutosPorMaterial(material) {
         }
     }
 }
-// MODIFICADA: cadastrarMaterialInsumo - Adicionado materialId ao item do produto
+
 async function cadastrarMaterialInsumo() {
     const nome = document.getElementById('nome-material').value;
     const tipo = document.querySelector('input[name="tipo-material"]:checked').value;
@@ -393,7 +393,7 @@ function buscarMateriaisCadastrados() {
             cellAcoes.appendChild(btnRemover);
         });
 }
-// MODIFICADO: editarMaterialInsumo
+
 async function editarMaterialInsumo(materialId) {
     const material = materiais.find(m => m.id === materialId);
 
@@ -520,8 +520,7 @@ async function salvarMaoDeObra() {
     }
 }
 
-
-function editarMaoDeObra() {
+function editarMaoDeObra() { // Removido o async, pois não há await aqui.
     modoEdicaoMaoDeObra = false;
 
     document.getElementById('salario-receber').readOnly = false;
@@ -592,6 +591,7 @@ async function carregarCustosIndiretosPredefinidos() {
     const listaCustos = document.getElementById('lista-custos-indiretos');
     listaCustos.innerHTML = '';
 
+    // ... (parte dos custos predefinidos permanece a mesma) ...
     custosIndiretosPredefinidosBase.forEach((custoBase, index) => {
         const listItem = document.createElement('li');
         const custoAtual = custosIndiretosPredefinidos.find(c => c.descricao === custoBase.descricao) || { ...custoBase };
@@ -602,17 +602,18 @@ async function carregarCustosIndiretosPredefinidos() {
         `;
         listaCustos.appendChild(listItem);
     });
+    // --- FIM DA PARTE DOS CUSTOS PREDEFINIDOS ---
 
     try {
         const querySnapshot = await getDocs(collection(db, "custos-indiretos-adicionais"));
-        custosIndiretosAdicionais = [];
+        custosIndiretosAdicionais = [];  // Limpa o array ANTES de popular
         querySnapshot.forEach((doc) => {
             custosIndiretosAdicionais.push({ id: doc.id, ...doc.data() });
         });
 
         custosIndiretosAdicionais.forEach((custo) => {
             const listItem = document.createElement('li');
-            listItem.dataset.index = custo.tempIndex;
+            listItem.dataset.index = custo.tempIndex; // Usar tempIndex
             listItem.innerHTML = `
                 <div class="custo-item-nome">${custo.descricao}</div>
                 <input type="number" value="${custo.valorMensal.toFixed(2)}" step="0.01">
@@ -621,11 +622,11 @@ async function carregarCustosIndiretosPredefinidos() {
             `;
             listaCustos.appendChild(listItem);
 
-            // ADD EVENT LISTENERS HERE, AFTER APPENDING listItem:
+            // ***  CORREÇÃO:  Adicionar os event listeners *AQUI* ***
             const salvarBtn = listItem.querySelector('.salvar-novo-custo-indireto-btn');
             const removerBtn = listItem.querySelector('.remover-novo-custo-indireto-btn');
 
-            if (salvarBtn && removerBtn) { // Check if buttons were found
+            if (salvarBtn && removerBtn) {
                 salvarBtn.addEventListener('click', function() { salvarNovoCustoIndiretoLista(this); });
                 removerBtn.addEventListener('click', function() { removerNovoCustoIndiretoLista(this); });
             }
@@ -635,9 +636,10 @@ async function carregarCustosIndiretosPredefinidos() {
 
     } catch (error) {
         console.error("Erro ao carregar custos indiretos adicionais do Firebase:", error);
-        }
+    }
 
-        // Adiciona event listeners para os botões "Salvar" de custos indiretos predefinidos
+    // ... (restante da função: event listeners para botões predefinidos, etc.) ...
+    // Adiciona event listeners para os botões "Salvar" de custos indiretos predefinidos
         const botoesSalvarPredefinidos = document.querySelectorAll('.salvar-custo-indireto-predefinido-btn');
         botoesSalvarPredefinidos.forEach(botao => {
             botao.addEventListener('click', function() {
@@ -653,14 +655,15 @@ async function carregarCustosIndiretosPredefinidos() {
             adicionarCustoIndiretoBtn.addEventListener('click', adicionarNovoCustoIndireto);
         }
 
-        // Adiciona event listeners para os botões "Salvar" de novos custos indiretos
-        const botoesSalvarNovosCustos = document.querySelectorAll('.salvar-novo-custo-indireto-btn');
-        botoesSalvarNovosCustos.forEach(botao => {
-            botao.addEventListener('click', function() {
-                salvarNovoCustoIndiretoLista(this);
-            });
-        });
-    }
+        // Adiciona event listeners para os botões "Salvar" de novos custos indiretos.
+        //REMOVIDO, POIS JÁ FOI ADICIONADO
+        //const botoesSalvarNovosCustos = document.querySelectorAll('.salvar-novo-custo-indireto-btn');
+        //botoesSalvarNovosCustos.forEach(botao => {
+        //    botao.addEventListener('click', function() {
+        //        salvarNovoCustoIndiretoLista(this);
+        //    });
+        //});
+}
 
 // MODIFICADA:  salvarCustoIndiretoPredefinido (agora atualiza a tabela e recalcula)
 async function salvarCustoIndiretoPredefinido(descricao, index) {
@@ -1357,7 +1360,6 @@ async function removerProduto(produtoId) {
         }
     }
 }
-
 // ===== INÍCIO - MODIFICAÇÃO PARA AUTOCOMPLETE DE MATERIAIS =====
 //MODIFICADA: buscarMateriaisAutocomplete, selecionarMaterial -  Usa o ID
 function buscarMateriaisAutocomplete() {
@@ -1988,7 +1990,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Botão "Salvar" - Mão de Obra
     const btnSalvarMaoDeObra = document.getElementById('btn-salvar-mao-de-obra');
     if (btnSalvarMaoDeObra) {
-        btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra);
+        btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra); // Usando event listener
+    }
+
+    // Botão "Editar" - Mão de Obra
+    const btnEditarMaoDeObra = document.getElementById('btn-editar-mao-de-obra');
+    if (btnEditarMaoDeObra) {
+        btnEditarMaoDeObra.addEventListener('click', editarMaoDeObra);  // Usando event listener
     }
 
      // Botão "Cadastrar Produto" -  (Proposta 1)
