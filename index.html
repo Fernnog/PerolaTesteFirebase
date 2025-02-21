@@ -107,6 +107,15 @@
             <button type="button" id="cadastrar-material-insumo-btn">Cadastrar</button>
         </form>
         <h2>Materiais e Insumos Cadastrados</h2>
+
+        <!--  TEXTO EXPLICATIVO MOVIDO PARA CÁ  -->
+        <hr class="aviso-separador">
+        <p class="aviso-unidades">
+            <strong>Atenção:</strong> Lembre-se, o Valor de Loja é o preço total que você pagou na compra do material/insumo.
+        </p>
+        <hr class="aviso-separador">
+        <!--  FIM DO TEXTO EXPLICATIVO  -->
+
         <div class="form-group">
             <input type="text" id="busca-material" placeholder="Buscar material..." onkeyup="buscarMateriaisCadastrados()">
         </div>
@@ -116,7 +125,7 @@
                     <th>Nome</th>
                     <th>Tipo</th>
                     <th>Dimensões/Quantidade Preenchidas</th>
-                    <th>Valor de Loja (R$)</th> <!-- Nova coluna -->
+                    <th>Valor de Loja (R$)</th>
                     <th>Custo Unitário (R$)</th>
                     <th>Ações</th>
                 </tr>
@@ -126,8 +135,7 @@
         </table>
     </section>
 
-    <!-- Restante do seu HTML (seções Mão de Obra, Custos Indiretos, etc.) -->
-     <!-- Seção Mão de Obra -->
+    <!-- Seção Mão de Obra -->
     <section id="mao-de-obra" class="subpagina" style="display: none;">
         <h2 id="titulo-mao-de-obra">Informações sobre custo de mão de obra</h2>
         <form id="form-mao-de-obra">
@@ -192,7 +200,7 @@
     </section>
 
 
-    <!-- Seção Produtos Cadastrados (MODIFICADA) -->
+    <!-- Seção Produtos Cadastrados -->
     <section id="produtos-cadastrados" class="subpagina" style="display: none;">
         <h2 id="titulo-novo-produto">Cadastro de Novo Produto</h2>
         <form id="form-produtos-cadastrados">
@@ -225,19 +233,9 @@
                 <tbody>
                 </tbody>
             </table>
-            <!--  <button type="button" onclick="cadastrarProduto()">Cadastrar Produto</button>  Removido o onclick -->
-            <button type="button" id="cadastrar-produto-btn">Cadastrar Produto</button> <!-- Adicionado ID -->
+            <button type="button" id="cadastrar-produto-btn">Cadastrar Produto</button>
         </form>
         <h2>Produtos Cadastrados</h2>
-
-        <!--  ADICIONADO O TEXTO EXPLICATIVO AQUI  -->
-        <hr class="aviso-separador">
-        <p class="aviso-unidades">
-            <strong>Atenção:</strong> Lembre-se, o Valor de Loja é o preço total que você pagou na compra do material/insumo.
-        </p>
-        <hr class="aviso-separador">
-        <!--  FIM DO TEXTO EXPLICATIVO  -->
-
         <div class="form-group">
             <input type="text" id="busca-produto" placeholder="Buscar produto..." onkeyup="buscarProdutosCadastrados()">
         </div>
