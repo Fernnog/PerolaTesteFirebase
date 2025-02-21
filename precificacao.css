@@ -430,7 +430,6 @@ td {
   margin-right: 10px;
     font-weight: bold;
 }
-
 #produto-selecionado, #horas-produto,  #margem-lucro-final{
     padding: 8px;
     border-radius: 20px;
@@ -558,13 +557,13 @@ td {
 }
 
 .aviso-unidades {
-  text-align: center;
-  font-size: 0.9em;
-  color: #555;
-  margin-bottom: 20px;
-  width: 80%;
-  margin-left: auto;
-  margin-right: auto;
+  text-align: left; /* Alinha o texto à esquerda */
+    font-size: 0.9em; /*Pode manter, se quiser o texto um pouco menor. */
+    color: #555;  /*Pode manter se quiser essa cor. */
+    margin-bottom: 5px; /* Ajuste o espaçamento conforme necessário. */
+    width: 80%; /*Se quiser que o aviso ocupe uma largura específica. */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .top-bar {
