@@ -1026,12 +1026,13 @@ async function atualizarTabelaProdutosCadastrados() {
     }
 }
 
+// Função de busca de produtos (CORRIGIDA)
 function buscarProdutosCadastrados() {
     const termoBusca = document.getElementById('busca-produto').value.toLowerCase();
     const tbody = document.querySelector('#tabela-produtos tbody');
     tbody.innerHTML = ''; // Limpa a tabela antes de repopular
 
-    // 1. FILTRAGEM:  Filtra os produtos.  A mágica acontece aqui!
+    // 1. FILTRAGEM:  Filtra os produtos.
     produtos.filter(produto => {
         // Verifica se o termo de busca está no nome do produto
         const buscaNoNome = produto.nome.toLowerCase().includes(termoBusca);
@@ -1045,8 +1046,7 @@ function buscarProdutosCadastrados() {
         return buscaNoNome || buscaNosMateriais;
 
     }).forEach(produto => { // 2. ITERAÇÃO:  Itera sobre os produtos FILTRADOS
-        // (O restante do código dentro do forEach permanece o mesmo,
-        //  pois ele só lida com a exibição dos resultados)
+        // (O restante do código dentro do forEach permanece o mesmo)
 
         const row = tbody.insertRow();
 
@@ -1920,6 +1920,8 @@ document.addEventListener('DOMContentLoaded', () => {
      // Adiciona event listener para a busca de materiais (CORREÇÃO)
      document.getElementById('busca-material').addEventListener('keyup', buscarMateriaisCadastrados);
 
+    // Adiciona event listener para a busca de produtos
+    document.getElementById('busca-produto').addEventListener('keyup', buscarProdutosCadastrados);
+
 });
 // ==== FIM SEÇÃO - EVENT LISTENERS GERAIS (DOMContentLoaded) ====
-
