@@ -288,6 +288,8 @@ async function cadastrarMaterialInsumo() {
     }
 }
 
+
+
 async function atualizarTabelaMateriaisInsumos() {
     const tbody = document.querySelector('#tabela-materiais-insumos tbody');
     tbody.innerHTML = '';
@@ -1322,6 +1324,7 @@ function selecionarMaterial(material) {
         material.pesoG
     );
 }
+
 // ===== FIM - MODIFICAÇÃO PARA AUTOCOMPLETE DE MATERIAIS =====
 
 
@@ -1897,6 +1900,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== INÍCIO - EVENT LISTENER PARA AUTOCOMPLETE DE MATERIAIS =====
     document.getElementById('pesquisa-material').addEventListener('input', buscarMateriaisAutocomplete);
     // ===== FIM - EVENT LISTENER PARA AUTOCOMPLETE DE MATERIAIS =====
+
+     // Adiciona event listener para a busca de materiais (CORREÇÃO)
+     document.getElementById('busca-material').addEventListener('keyup', buscarMateriaisCadastrados);
 
 });
 // ==== FIM SEÇÃO - EVENT LISTENERS GERAIS (DOMContentLoaded) ====
