@@ -491,7 +491,7 @@ async function salvarMaoDeObra() {
     try {
         await setDoc(doc(db, "configuracoes", "maoDeObra"), maoDeObraData);
 
-        maoDeObra = maoDeObraData;
+        maoDeObra = maoDeObraData; // Atualiza a variável global
 
         document.getElementById('salario-receber').value = maoDeObra.salario;
         document.getElementById('horas-trabalhadas').value = maoDeObra.horas;
@@ -508,16 +508,18 @@ async function salvarMaoDeObra() {
         document.getElementById('salario-receber').readOnly = true;
         document.getElementById('horas-trabalhadas').readOnly = true;
 
-         atualizarTabelaCustosIndiretos();
-         calcularCustos();
+        // ***  PARTE CRUCIAL:  Recalcular e Atualizar Custos Indiretos ***
+        await atualizarCustosIndiretosAposMudancaMaoDeObra(); // Chamada da nova função
 
-         salvarDados();
+        calcularCustos(); // Recalcula a precificação (se necessário)
+        salvarDados();     // Salva no localStorage (se necessário)
 
     } catch (error) {
         console.error("Erro ao salvar dados de mão de obra no Firebase:", error);
         alert('Erro ao salvar dados de mão de obra no Firebase.');
     }
 }
+
 
 function editarMaoDeObra() {
     modoEdicaoMaoDeObra = false;
@@ -532,6 +534,58 @@ function editarMaoDeObra() {
     document.getElementById('titulo-mao-de-obra').textContent = 'Informações sobre custo de mão de obra';
 }
 // ==== FIM SEÇÃO - FUNÇÕES MÃO DE OBRA ====
+
+// ==== INÍCIO - NOVA FUNÇÃO: Atualização dos Custos Indiretos ====
+
+async function atualizarCustosIndiretosAposMudancaMaoDeObra() {
+    const horasTrabalhadas = maoDeObra.horas;
+
+    if (!horasTrabalhadas || horasTrabalhadas <= 0) {
+        // Se as horas não estiverem definidas, não fazemos nada.
+        // Poderíamos, opcionalmente, mostrar um aviso aqui.
+        return;
+    }
+
+    // 1. Atualizar Custos Indiretos Predefinidos
+    for (const custo of custosIndiretosPredefinidos) {
+        // Não precisa mais buscar o custo no array, pois estamos iterando diretamente
+        const valorPorHora = custo.valorMensal / horasTrabalhadas;
+        custo.valorPorHora = valorPorHora; // Adiciona/atualiza a propriedade
+
+        // Atualizar no DOM, se necessário (dentro do loop, para cada custo):
+         const index = custosIndiretosPredefinidos.indexOf(custo);
+         if (index !== -1) {
+           const inputValor = document.getElementById(`custo-indireto-${index}`);
+           if(inputValor){
+              inputValor.value = custo.valorMensal.toFixed(2); // Mantem valor mensal no input
+           }
+         }
+
+    }
+
+
+    // 2. Atualizar Custos Indiretos Adicionais (no Firebase)
+    for (const custo of custosIndiretosAdicionais) {
+        const valorPorHora = custo.valorMensal / horasTrabalhadas;
+          custo.valorPorHora = valorPorHora;
+
+        try {
+             // Atualiza *cada* custo adicional no Firestore
+            await updateDoc(doc(db, "custos-indiretos-adicionais", custo.id), {
+               valorPorHora: valorPorHora // Atualiza o valor por hora no firestore
+            });
+
+        } catch (error) {
+            console.error("Erro ao atualizar custo indireto adicional no Firebase:", error);
+            // Não interrompe a execução, mas loga o erro.
+        }
+    }
+
+    // 3. Atualizar a Tabela (agora usa os valores recalculados)
+    atualizarTabelaCustosIndiretos();
+}
+
+// ==== FIM - NOVA FUNÇÃO: Atualização dos Custos Indiretos ====
 
 // ==== INÍCIO SEÇÃO - FUNÇÕES CUSTOS INDIRETOS ====
 async function carregarCustosIndiretosPredefinidos() {
@@ -608,6 +662,7 @@ async function carregarCustosIndiretosPredefinidos() {
         });
     }
 
+// MODIFICADA:  salvarCustoIndiretoPredefinido (agora atualiza a tabela e recalcula)
 async function salvarCustoIndiretoPredefinido(descricao, index) {
     const inputValor = document.getElementById(`custo-indireto-${index}`);
     const novoValor = parseFloat(inputValor.value);
@@ -616,10 +671,13 @@ async function salvarCustoIndiretoPredefinido(descricao, index) {
         const custoParaAtualizar = custosIndiretosPredefinidos.find(c => c.descricao === descricao);
         if(custoParaAtualizar){
             custoParaAtualizar.valorMensal = novoValor;
+            custoParaAtualizar.valorPorHora = novoValor / maoDeObra.horas; // Calcula o valor por hora
         }
-        atualizarTabelaCustosIndiretos();
-        calcularCustos();
-        salvarDados();
+
+        atualizarTabelaCustosIndiretos(); // Atualiza a exibição
+        calcularCustos();               // Recalcula a precificação
+        salvarDados();                 // Salva no localStorage
+
     } else {
         alert("Por favor, insira um valor numérico válido.");
     }
@@ -648,6 +706,7 @@ function adicionarNovoCustoIndireto() {
     }
 }
 
+// MODIFICADA: salvarNovoCustoIndiretoLista (agora salva valorPorHora no Firestore)
 async function salvarNovoCustoIndiretoLista(botao) {
     const listItem = botao.parentNode;
     const descricaoInput = listItem.querySelector('.custo-item-nome');
@@ -657,12 +716,15 @@ async function salvarNovoCustoIndiretoLista(botao) {
     const descricao = descricaoInput.value.trim();
     const valorMensal = parseFloat(valorInput.value);
 
+
     if (descricao && !isNaN(valorMensal)) {
         const custoData = {
             descricao: descricao,
             valorMensal: valorMensal,
+            valorPorHora: valorMensal / maoDeObra.horas, // Calcula e armazena valorPorHora
             tempIndex: index
         };
+
 
         try {
             let custoId = botao.dataset.id;
@@ -674,7 +736,6 @@ async function salvarNovoCustoIndiretoLista(botao) {
                 botao.dataset.id = custoId;
             }
 
-                                  // Atualiza o array local `custosIndiretosAdicionais`
             const custoExistenteIndex = custosIndiretosAdicionais.findIndex(c => c.tempIndex === index);
             if (custoExistenteIndex !== -1) {
                 custosIndiretosAdicionais[custoExistenteIndex] = { id: custoId, ...custoData };
@@ -682,9 +743,9 @@ async function salvarNovoCustoIndiretoLista(botao) {
                 custosIndiretosAdicionais.push({ id: custoId, ...custoData });
             }
 
-            atualizarTabelaCustosIndiretos();
-            calcularCustos();
-            salvarDados();
+            atualizarTabelaCustosIndiretos(); // Usa os valores corretos
+            calcularCustos();                // Recalcula
+            salvarDados();                  // Salva
 
         } catch (error) {
             console.error("Erro ao salvar novo custo indireto no Firebase:", error);
@@ -718,6 +779,7 @@ async function removerNovoCustoIndiretoLista(botaoRemover) {
     }
 }
 
+// MODIFICADA: atualizarTabelaCustosIndiretos (agora usa valorPorHora)
 function atualizarTabelaCustosIndiretos() {
     const tbody = document.querySelector('#tabela-custos-indiretos tbody');
     tbody.innerHTML = '';
@@ -731,21 +793,20 @@ function atualizarTabelaCustosIndiretos() {
         return;
     }
 
-    const custosPredefinidosParaExibir = custosIndiretosPredefinidos.filter(custo => custo.valorMensal > 0);
-    const custosAdicionaisParaExibir = custosIndiretosAdicionais.filter(custo => custo.valorMensal > 0);
+     // Filtra para exibir apenas custos > 0 (ou com valorPorHora, se já tiver sido calculado)
+    const custosPredefinidosParaExibir = custosIndiretosPredefinidos.filter(custo => custo.valorMensal > 0 || custo.valorPorHora > 0);
+    const custosAdicionaisParaExibir = custosIndiretosAdicionais.filter(custo => custo.valorMensal > 0 || custo.valorPorHora > 0);
 
-    custosPredefinidosParaExibir.forEach((custo, index) => {
+    custosPredefinidosParaExibir.forEach((custo) => { // Removido o index
         const row = tbody.insertRow();
-        const cellDescricao = row.insertCell();
-        const cellValorMensal = row.insertCell();
-        const cellValorHoraTrabalhada = row.insertCell();
+        row.insertCell().textContent = custo.descricao;
+        row.insertCell().textContent = formatarMoeda(custo.valorMensal);
+
+        // Usa o valorPorHora, se existir.  Senão, calcula (mas não salva).
+        const valorPorHora = custo.valorPorHora !== undefined ? custo.valorPorHora : custo.valorMensal / horasTrabalhadas;
+        row.insertCell().textContent = formatarMoeda(valorPorHora);
+
         const cellAcoes = row.insertCell();
-
-        cellDescricao.textContent = custo.descricao;
-        cellValorMensal.textContent = formatarMoeda(custo.valorMensal);
-        const valorPorHora = custo.valorMensal / horasTrabalhadas;
-        cellValorHoraTrabalhada.textContent = formatarMoeda(valorPorHora);
-
         const botaoZerar = document.createElement('button');
         botaoZerar.textContent = 'Zerar';
         botaoZerar.onclick = () => zerarCustoIndireto(custo.descricao, 'predefinido');
@@ -754,16 +815,15 @@ function atualizarTabelaCustosIndiretos() {
 
     custosAdicionaisParaExibir.forEach((custo) => {
         const row = tbody.insertRow();
-        const cellDescricao = row.insertCell();
-        const cellValorMensal = row.insertCell();
-        const cellValorHoraTrabalhada = row.insertCell();
+        row.insertCell().textContent = custo.descricao;
+        row.insertCell().textContent = formatarMoeda(custo.valorMensal);
+
+         // Usa o valorPorHora, se existir.  Senão, calcula (mas não salva).
+        const valorPorHora = custo.valorPorHora !== undefined ? custo.valorPorHora : custo.valorMensal / horasTrabalhadas;
+        row.insertCell().textContent = formatarMoeda(valorPorHora);
+
+
         const cellAcoes = row.insertCell();
-
-        cellDescricao.textContent = custo.descricao;
-        cellValorMensal.textContent = formatarMoeda(custo.valorMensal);
-        const valorPorHora = custo.valorMensal / horasTrabalhadas;
-        cellValorHoraTrabalhada.textContent = formatarMoeda(valorPorHora);
-
         const botaoZerar = document.createElement('button');
         botaoZerar.textContent = 'Zerar';
         botaoZerar.onclick = () => zerarCustoIndireto(custo.id, 'adicional');
@@ -771,35 +831,9 @@ function atualizarTabelaCustosIndiretos() {
     });
 }
 
-async function zerarCustoIndireto(identificador, tipo) {
-    if (tipo === 'predefinido') {
-        const index = custosIndiretosPredefinidos.findIndex(c => c.descricao === identificador);
-        if (index !== -1) {
-             custosIndiretosPredefinidos[index].valorMensal = 0;
-             document.getElementById(`custo-indireto-${index}`).value = '0.00';
-        }
-    } else if (tipo === 'adicional') {
-        try {
-            await updateDoc(doc(db, "custos-indiretos-adicionais", identificador), { valorMensal: 0 });
-
-            const custoAdicionalIndex = custosIndiretosAdicionais.findIndex(c => c.id === identificador);
-            if (custoAdicionalIndex !== -1) {
-                custosIndiretosAdicionais[custoAdicionalIndex].valorMensal = 0;
-            }
-
-        } catch (error) {
-            console.error("Erro ao zerar custo indireto adicional no Firebase:", error);
-            alert("Erro ao zerar custo indireto. Tente novamente.");
-            return;
-        }
-    }
-    atualizarTabelaCustosIndiretos();
-    calcularCustos();
-    salvarDados();
-}
-
+// MODIFICADA: buscarCustosIndiretosCadastrados (agora usa valorPorHora e lida com custos zerados)
 function buscarCustosIndiretosCadastrados() {
-      const termoBusca = document.getElementById('busca-custo-indireto').value.toLowerCase();
+    const termoBusca = document.getElementById('busca-custo-indireto').value.toLowerCase();
     const tbody = document.querySelector('#tabela-custos-indiretos tbody');
     tbody.innerHTML = '';
 
@@ -812,40 +846,68 @@ function buscarCustosIndiretosCadastrados() {
         return;
     }
 
-    const custosExibicao = [...custosIndiretosPredefinidos, ...custosIndiretosAdicionais].filter(custo => custo.valorMensal > 0);
+    // Combina os arrays, filtra, e *depois* faz a busca.
+    const custosExibicao = [...custosIndiretosPredefinidos, ...custosIndiretosAdicionais]
+       .filter(custo => custo.valorMensal > 0 || custo.valorPorHora > 0); // Garante que custos zerados *apareçam* se tiverem sido calculados antes.
     const custosFiltrados = custosExibicao.filter(custo => custo.descricao.toLowerCase().includes(termoBusca));
 
    custosFiltrados.forEach((custo) => {
-        const originalIndexPredefinidos = custosIndiretosPredefinidos.findIndex(c => c.descricao === custo.descricao);
-        const originalAdicional = custosIndiretosAdicionais.find(c => c.descricao === custo.descricao && c.id === custo.id);
 
-        if (custo.valorMensal > 0 || originalAdicional || originalIndexPredefinidos !== -1 ) {
-            const row = tbody.insertRow();
-            const cellDescricao = row.insertCell();
-            const cellValorMensal = row.insertCell();
-            const cellValorHoraTrabalhada = row.insertCell();
-            const cellAcoes = row.insertCell();
+        // Mesma lógica de exibição da atualizarTabelaCustosIndiretos
+        const row = tbody.insertRow();
+        row.insertCell().textContent = custo.descricao;
+        row.insertCell().textContent = formatarMoeda(custo.valorMensal);
+        const valorPorHora = custo.valorPorHora !== undefined ? custo.valorPorHora : custo.valorMensal / horasTrabalhadas;
+        row.insertCell().textContent = formatarMoeda(valorPorHora);
 
-            cellDescricao.textContent = custo.descricao;
-            cellValorMensal.textContent = formatarMoeda(custo.valorMensal);
+        const cellAcoes = row.insertCell();
+        let botaoAcao;
+        if (custosIndiretosPredefinidos.some(c => c.descricao === custo.descricao)) {
+            botaoAcao = document.createElement('button');
+            botaoAcao.textContent = 'Zerar';
+            botaoAcao.onclick = () => zerarCustoIndireto(custo.descricao, 'predefinido');
+        } else if (custosIndiretosAdicionais.some(c => c.id === custo.id)) {
+            botaoAcao = document.createElement('button');
+            botaoAcao.textContent = 'Zerar';
+            botaoAcao.onclick = () => zerarCustoIndireto(custo.id, 'adicional');
+        }
+        if (botaoAcao) cellAcoes.appendChild(botaoAcao);
+    });
+}
 
-            const valorPorHora = custo.valorMensal / horasTrabalhadas;
-            cellValorHoraTrabalhada.textContent = formatarMoeda(valorPorHora);
 
-            let botaoAcao;
-            if (originalIndexPredefinidos !== -1) {
-                botaoAcao = document.createElement('button');
-                botaoAcao.textContent = 'Zerar';
-                botaoAcao.onclick = function() { zerarCustoIndireto(custo.descricao, 'predefinido'); };
-            } else if (originalAdicional) {
-                botaoAcao = document.createElement('button');
-                botaoAcao.textContent = 'Zerar';
-                botaoAcao.onclick = function() { zerarCustoIndireto(custo.id, 'adicional'); };
+// MODIFICADA:  zerarCustoIndireto (agora zera valorPorHora também, e lida com Firestore)
+async function zerarCustoIndireto(identificador, tipo) {
+    if (tipo === 'predefinido') {
+        const index = custosIndiretosPredefinidos.findIndex(c => c.descricao === identificador);
+        if (index !== -1) {
+             custosIndiretosPredefinidos[index].valorMensal = 0;
+             custosIndiretosPredefinidos[index].valorPorHora = 0; // Zera valorPorHora
+             document.getElementById(`custo-indireto-${index}`).value = '0.00';
+        }
+    } else if (tipo === 'adicional') {
+        try {
+            // Zera *ambos* os valores no Firestore
+            await updateDoc(doc(db, "custos-indiretos-adicionais", identificador), {
+                valorMensal: 0,
+                valorPorHora: 0
+            });
+
+            const custoAdicionalIndex = custosIndiretosAdicionais.findIndex(c => c.id === identificador);
+            if (custoAdicionalIndex !== -1) {
+                custosIndiretosAdicionais[custoAdicionalIndex].valorMensal = 0;
+                custosIndiretosAdicionais[custoAdicionalIndex].valorPorHora = 0; // Zera
             }
 
-            cellAcoes.appendChild(botaoAcao);
+        } catch (error) {
+            console.error("Erro ao zerar custo indireto adicional no Firebase:", error);
+            alert("Erro ao zerar custo indireto. Tente novamente.");
+            return;
         }
-    });
+    }
+    atualizarTabelaCustosIndiretos();
+    calcularCustos();
+    salvarDados();
 }
 // ==== FIM SEÇÃO - FUNÇÕES CUSTOS INDIRETOS ====
 
@@ -1295,6 +1357,7 @@ async function removerProduto(produtoId) {
         }
     }
 }
+
 // ===== INÍCIO - MODIFICAÇÃO PARA AUTOCOMPLETE DE MATERIAIS =====
 //MODIFICADA: buscarMateriaisAutocomplete, selecionarMaterial -  Usa o ID
 function buscarMateriaisAutocomplete() {
@@ -1378,23 +1441,7 @@ function selecionarProduto(produto) {
 // ==== FIM SEÇÃO - FUNÇÕES PRODUTOS CADASTRADOS ====
 
 // ==== INÍCIO SEÇÃO - FUNÇÕES CÁLCULO DE PRECIFICAÇÃO ====
-function carregarDadosProduto(produto) {
-
-    document.getElementById('custo-produto').textContent = formatarMoeda(produto.custoTotal);
-
-    const listaMateriais = document.getElementById('lista-materiais-produto');
-    listaMateriais.innerHTML = '';
-
-    produto.materiais.forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = `${item.material.nome} - ${item.quantidade} ${item.tipo} - ${formatarMoeda(item.custoTotal)}`;
-        listaMateriais.appendChild(li);
-    });
-
-     document.getElementById('detalhes-produto').style.display = 'block';
-
-}
-
+// MODIFICADA: calcularCustos (usa valorPorHora dos custos indiretos)
 function calcularCustos() {
     const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
     const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
@@ -1411,29 +1458,56 @@ function calcularCustos() {
     document.getElementById('custo-ferias-13o-detalhe').textContent = formatarMoeda(custoFerias13o);
     document.getElementById('total-mao-de-obra').textContent = formatarMoeda(totalMaoDeObra);
 
+    // Soma os custos indiretos *por hora* e multiplica pelas horas do produto.
     const todosCustosIndiretos = [...custosIndiretosPredefinidos, ...custosIndiretosAdicionais];
-    const custosIndiretosAtivos = todosCustosIndiretos.filter(custo => custo.valorMensal > 0);
-    const custoIndiretoTotalPorHora = custosIndiretosAtivos.reduce((total, custo) => total + (custo.valorMensal / maoDeObra.horas), 0);
+    const custosIndiretosAtivos = todosCustosIndiretos.filter(custo => custo.valorMensal > 0 || custo.valorPorHora > 0); // Considera valorPorHora
+    const custoIndiretoTotalPorHora = custosIndiretosAtivos.reduce((total, custo) => {
+        // Usa valorPorHora, se existir.  Senão, calcula (mas não salva).
+        const valorPorHora = custo.valorPorHora !== undefined ? custo.valorPorHora : (custo.valorMensal / maoDeObra.horas);
+        return total + valorPorHora;
+    }, 0);
     const custoIndiretoTotal = custoIndiretoTotalPorHora * horasProduto;
+
     document.getElementById('custo-indireto').textContent = formatarMoeda(custoIndiretoTotal);
 
-        const listaCustosIndiretos = document.getElementById('lista-custos-indiretos-detalhes');
+
+    const listaCustosIndiretos = document.getElementById('lista-custos-indiretos-detalhes');
     listaCustosIndiretos.innerHTML = '';
     custosIndiretosAtivos.forEach(custo => {
         const li = document.createElement('li');
-        const custoPorHora = custo.valorMensal / maoDeObra.horas;
-        const custoTotalItem = custoPorHora * horasProduto;
+
+        // Usa valorPorHora, se existir.  Senão, calcula (e *não* salva).
+        const valorPorHora = custo.valorPorHora !== undefined ? custo.valorPorHora : (custo.valorMensal / maoDeObra.horas);
+        const custoTotalItem = valorPorHora * horasProduto;  // Usa o valor por hora *correto*.
+
         li.textContent = `${custo.descricao} - ${formatarMoeda(custoTotalItem)}`;
         listaCustosIndiretos.appendChild(li);
     });
 
-      document.getElementById('detalhes-custos-indiretos').style.display = 'block';
+    document.getElementById('detalhes-custos-indiretos').style.display = 'block';
 
 
     const subtotal = custoProduto + totalMaoDeObra + custoIndiretoTotal;
     document.getElementById('subtotal').textContent = formatarMoeda(subtotal);
 
     calcularPrecoVendaFinal();
+}
+
+function carregarDadosProduto(produto) {
+
+    document.getElementById('custo-produto').textContent = formatarMoeda(produto.custoTotal);
+
+    const listaMateriais = document.getElementById('lista-materiais-produto');
+    listaMateriais.innerHTML = '';
+
+    produto.materiais.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.material.nome} - ${item.quantidade} ${item.tipo} - ${formatarMoeda(item.custoTotal)}`;
+        listaMateriais.appendChild(li);
+    });
+
+     document.getElementById('detalhes-produto').style.display = 'block';
+
 }
 
 function calcularPrecoVendaFinal() {
@@ -1743,6 +1817,7 @@ function salvarDados() {
     localStorage.setItem('dadosPrecificacao', JSON.stringify(dados));
 }
 
+//MODIFICADA: carregarDados - Agora carrega valorPorHora dos custos indiretos do firestore.
 async function carregarDados() {
     try {
         const maoDeObraDoc = await getDocs(collection(db, "configuracoes"));
@@ -1756,9 +1831,17 @@ async function carregarDados() {
         });
 
 
+        // Carrega custos indiretos adicionais *e* o valorPorHora do Firestore.
+        const custosAdicionaisSnapshot = await getDocs(collection(db, "custos-indiretos-adicionais"));
+        custosIndiretosAdicionais = []; // Limpa o array
+        custosAdicionaisSnapshot.forEach(doc => {
+            custosIndiretosAdicionais.push({ id: doc.id, ...doc.data() }); // Inclui valorPorHora
+        });
+
+
         atualizarTabelaMateriaisInsumos();
-        carregarCustosIndiretosPredefinidos();
-        atualizarTabelaCustosIndiretos();
+        carregarCustosIndiretosPredefinidos(); // Carrega/preenche a lista
+        atualizarTabelaCustosIndiretos(); // Usa os valores carregados (incluindo valorPorHora)
         atualizarTabelaProdutosCadastrados();
         atualizarTabelaPrecificacoesGeradas();
 
@@ -1783,6 +1866,7 @@ async function carregarDados() {
             document.getElementById('incluir-taxa-credito-nao').checked = !taxaCredito.incluir;
         }
 
+        // Calcula custos *depois* de carregar tudo.
         calcularCustos();
 
     } catch (error) {
