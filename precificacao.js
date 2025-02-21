@@ -1029,9 +1029,25 @@ async function atualizarTabelaProdutosCadastrados() {
 function buscarProdutosCadastrados() {
     const termoBusca = document.getElementById('busca-produto').value.toLowerCase();
     const tbody = document.querySelector('#tabela-produtos tbody');
-    tbody.innerHTML = '';
+    tbody.innerHTML = ''; // Limpa a tabela antes de repopular
 
-    produtos.filter(produto => produto.nome.toLowerCase().includes(termoBusca)).forEach((produto) => {
+    // 1. FILTRAGEM:  Filtra os produtos.  A mágica acontece aqui!
+    produtos.filter(produto => {
+        // Verifica se o termo de busca está no nome do produto
+        const buscaNoNome = produto.nome.toLowerCase().includes(termoBusca);
+
+        // Verifica se o termo de busca está em ALGUM dos nomes dos materiais
+        const buscaNosMateriais = produto.materiais.some(item =>
+            item.material.nome.toLowerCase().includes(termoBusca)
+        );
+
+        // Retorna true SE (buscaNoNome OU buscaNosMateriais) forem verdadeiros
+        return buscaNoNome || buscaNosMateriais;
+
+    }).forEach(produto => { // 2. ITERAÇÃO:  Itera sobre os produtos FILTRADOS
+        // (O restante do código dentro do forEach permanece o mesmo,
+        //  pois ele só lida com a exibição dos resultados)
+
         const row = tbody.insertRow();
 
         row.insertCell().textContent = produto.nome;
@@ -1906,3 +1922,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 // ==== FIM SEÇÃO - EVENT LISTENERS GERAIS (DOMContentLoaded) ====
+
