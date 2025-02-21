@@ -288,8 +288,6 @@ async function cadastrarMaterialInsumo() {
     }
 }
 
-
-
 async function atualizarTabelaMateriaisInsumos() {
     const tbody = document.querySelector('#tabela-materiais-insumos tbody');
     tbody.innerHTML = '';
@@ -350,10 +348,11 @@ async function atualizarTabelaMateriaisInsumos() {
 function buscarMateriaisCadastrados() {
     const termoBusca = document.getElementById('busca-material').value.toLowerCase();
     const tbody = document.querySelector('#tabela-materiais-insumos tbody');
-    tbody.innerHTML = '';
+    tbody.innerHTML = '';  // Limpa a tabela antes de repopular
 
+    // Filtra e itera, *tudo em um comando*:
     materiais.filter(material => material.nome.toLowerCase().includes(termoBusca))
-        .forEach((material) => {
+        .forEach(material => {
             const row = tbody.insertRow();
 
             row.insertCell().textContent = material.nome;
@@ -378,7 +377,7 @@ function buscarMateriaisCadastrados() {
                     break;
             }
             row.insertCell().textContent = dimensoes;
-            row.insertCell().textContent = formatarMoeda(material.valorTotal); // Valor de Loja
+            row.insertCell().textContent = formatarMoeda(material.valorTotal);
             row.insertCell().textContent = formatarMoeda(material.custoUnitario);
 
             const cellAcoes = row.insertCell();
@@ -390,7 +389,7 @@ function buscarMateriaisCadastrados() {
             btnRemover.onclick = () => removerMaterialInsumo(material.id);
             cellAcoes.appendChild(btnEditar);
             cellAcoes.appendChild(btnRemover);
-    });
+        });
 }
 // MODIFICADO: editarMaterialInsumo
 async function editarMaterialInsumo(materialId) {
@@ -1889,7 +1888,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra);
     }
 
-       // Botão "Cadastrar Produto" -  (Proposta 1)
+     // Botão "Cadastrar Produto" -  (Proposta 1)
     const btnCadastrarProduto = document.getElementById('cadastrar-produto-btn');
     if (btnCadastrarProduto) {
         btnCadastrarProduto.addEventListener('click', cadastrarProduto);
