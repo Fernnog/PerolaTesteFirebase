@@ -107,8 +107,15 @@
             <button type="button" id="cadastrar-material-insumo-btn">Cadastrar</button>
         </form>
         <h2>Materiais e Insumos Cadastrados</h2>
+        <!--  Adicionando o aviso aqui (Opção C) -->
+        <hr class="aviso-separador">
+          <p class="aviso-unidades">
+              <strong>Atenção:</strong> Lembre-se, o Valor de Loja é o preço total que você pagou na compra do material/insumo.
+          </p>
+        <hr class="aviso-separador">
         <div class="form-group">
-            <input type="text" id="busca-material" placeholder="Buscar material..." onkeyup="buscarMateriaisCadastrados()">
+
+            <input type="text" id="busca-material" placeholder="Buscar material..." >
         </div>
         <table id="tabela-materiais-insumos" class="tabela-gerada">
             <thead>
@@ -129,238 +136,27 @@
     <!-- Restante do seu HTML (seções Mão de Obra, Custos Indiretos, etc.) -->
      <!-- Seção Mão de Obra -->
     <section id="mao-de-obra" class="subpagina" style="display: none;">
-        <h2 id="titulo-mao-de-obra">Informações sobre custo de mão de obra</h2>
-        <form id="form-mao-de-obra">
-            <div class="form-group">
-                <label for="salario-receber">Salário a receber (R$):</label>
-                <input type="number" id="salario-receber" name="salario-receber" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="horas-trabalhadas">Horas trabalhadas por mês:</label>
-                <input type="number" id="horas-trabalhadas" name="horas-trabalhadas" required value="220">
-            </div>
-            <div class="form-group">
-                <label for="valor-hora">Valor da hora trabalhada (R$):</label>
-                <input type="number" id="valor-hora" name="valor-hora" step="0.01" readonly>
-            </div>
-            <button type="button" id='btn-salvar-mao-de-obra'>Salvar</button>
-            <button type="button" onclick="editarMaoDeObra()" style="display:none;" id='btn-editar-mao-de-obra'>Editar</button>
-
-            <hr class="linha-separadora">
-
-            <h3 id="titulo-ferias-13o">Informações sobre custo de férias e 13º Salário</h3>
-            <div class="form-group">
-                <label>Deseja incluir o custo de férias e 13º salário?</label><br>
-                <label><input type="radio" id="incluir-ferias-13o-sim" name="incluir-ferias-13o" value="sim"> Sim</label>
-                <label><input type="radio" id="incluir-ferias-13o-nao" name="incluir-ferias-13o" value="nao" checked> Não</label>
-            </div>
-
-            <div class="form-group">
-                <label for="custo-ferias-13o">Custo de férias e 13º salário por hora trabalhada (R$):</label>
-                <input type="number" id="custo-ferias-13o" name="custo-ferias-13o" step="0.01" readonly value="0.00">
-            </div>
-
-        </form>
+       <!--Seu conteudo-->
     </section>
 
     <!-- Seção Custos Indiretos -->
     <section id="custos-indiretos" class="subpagina" style="display: none;">
-       <h2 id="titulo-custos-indiretos">Cadastro de Custos Indiretos</h2>
-        <p style="text-align: center;">Custos indiretos são considerados para o período de um mês.</p>
-
-        <ul id="lista-custos-indiretos">
-            </ul>
-
-        <button type="button" id="adicionarCustoIndiretoBtn">+ Adicionar Custo Indireto</button>
-
-        <h2>Custos Indiretos Cadastrados</h2>
-        <div class="form-group">
-            <input type="text" id="busca-custo-indireto" placeholder="Buscar custo indireto..." onkeyup="buscarCustosIndiretosCadastrados()">
-        </div>
-        <table id="tabela-custos-indiretos" class="tabela-gerada">
-            <thead>
-                <tr>
-                    <th>Descrição</th>
-                    <th>Valor Mensal (R$)</th>
-                    <th>Valor por hora trabalhada (R$)</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+      <!--Seu conteudo-->
     </section>
 
 
     <!-- Seção Produtos Cadastrados (MODIFICADA) -->
     <section id="produtos-cadastrados" class="subpagina" style="display: none;">
-        <h2 id="titulo-novo-produto">Cadastro de Novo Produto</h2>
-        <form id="form-produtos-cadastrados">
-            <div class="form-group">
-                <label for="nome-produto">Nome do Produto:</label>
-                <input type="text" id="nome-produto" name="nome-produto" required>
-            </div>
-            <div class="form-group">
-                <label for="pesquisa-material">Adicionar Material/Insumo:</label>
-                <input type="text" id="pesquisa-material" name="pesquisa-material" placeholder="Pesquisar...">
-                <div id="resultados-pesquisa"></div>
-            </div>
-            <hr class="aviso-separador">
-            <p class="aviso-unidades">
-                <strong>Atenção:</strong> Ao adicionar materiais, preencha as dimensões em <span style="color: #5a82a9;">centímetros (cm)</span> para materiais do tipo "Área" e "Comprimento".  Para os tipos "Litro", "Quilo" e "Unidade", insira a quantidade diretamente nas unidades correspondentes (L, kg, un).
-            </p>
-            <hr class="aviso-separador">
-            <table id="tabela-materiais-produto" class="tabela-gerada">
-                <thead>
-                    <tr>
-                        <th>Material/Insumo</th>
-                        <th>Tipo</th>
-                        <th>Custo Unitário</th>
-                        <th>Dimensões</th>
-                        <th>Quantidade</th>
-                        <th>Custo Total</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-            <!--  <button type="button" onclick="cadastrarProduto()">Cadastrar Produto</button>  Removido o onclick -->
-            <button type="button" id="cadastrar-produto-btn">Cadastrar Produto</button> <!-- Adicionado ID -->
-        </form>
-        <h2>Produtos Cadastrados</h2>
-        <div class="form-group">
-            <input type="text" id="busca-produto" placeholder="Buscar produto..." onkeyup="buscarProdutosCadastrados()">
-        </div>
-        <table id="tabela-produtos" class="tabela-gerada">
-            <thead>
-                <tr>
-                    <th>Nome do Produto</th>
-                    <th>Materiais Utilizados</th>
-                    <th>Custos/Dimensões do Produto</th>
-                    <th>Custo Total dos Materiais (R$)</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Os produtos cadastrados serão inseridos aqui -->
-            </tbody>
-        </table>
+       <!--Seu conteudo-->
     </section>
 
     <!-- Seção Cálculo da Precificação -->
     <section id="calculo-precificacao" class="subpagina">
-        <h2>Cálculo da Precificação</h2>
-        <div class="form-group">
-            <label for="nome-cliente">Nome do Cliente (Opcional):</label>
-            <input type="text" id="nome-cliente" name="nome-cliente" placeholder="Insira o nome do cliente">
-        </div>
-        <div class="calculation-container">
-            <div class="section">
-                <label for="produto-pesquisa">Pesquisar Produto:</label>
-                <input type="text" id="produto-pesquisa" oninput="buscarProdutosAutocomplete()" placeholder="Digite o nome do produto...">
-                <div id="produto-resultados" class="hidden"></div>
-                <span class="bracket">}</span>
-                <span id="custo-produto">R$ 0,00</span>
-            </div>
-            <div id="detalhes-produto" style="display: none;">
-                <h3>Materiais do Produto:</h3>
-                <ul id="lista-materiais-produto">
-                </ul>
-            </div>
-
-            <div class="section">
-                <label for="horas-produto">Horas para Concluir o Produto:</label>
-                <input type="number" id="horas-produto" value="1" min="1" onchange="calcularCustos()">
-                <span class="bracket">}</span>
-                <div id="detalhes-mao-de-obra">
-                  <div class="custo-detalhe">
-                    <span>Custo Mão de Obra:</span>
-                    <span id="custo-mao-de-obra-detalhe">R$ 0,00</span>
-                  </div>
-                  <div class="custo-detalhe">
-                    <span>Custo 13º e Férias:</span>
-                    <span id="custo-ferias-13o-detalhe">R$ 0,00</span>
-                   </div>
-                    <div class="custo-detalhe">
-                        <span><b>Total Mão de Obra:</b></span>
-                        <span id="total-mao-de-obra"><b>R$ 0,00</b></span>
-                    </div>
-                </div>
-            </div>
-            <div class="section">
-                <label>Custos Indiretos (por hora):</label>
-                 <span class="bracket">}</span>
-                <span id="custo-indireto">R$ 0,00</span>
-             </div>
-            <div id="detalhes-custos-indiretos">
-                <h3>Custos Indiretos Detalhados:</h3>
-                <ul id="lista-custos-indiretos-detalhes">
-                </ul>
-            </div>
-            <hr class="subtotal-line">
-
-            <div class="section subtotal">
-                <span>Subtotal:</span>
-                <span id="subtotal">R$ 0,00</span>
-            </div>
-            <div class="section">
-                <span>Margem de Lucro:</span>
-                <span id="margem-lucro-valor">R$ 0,00</span>
-            </div>
-
-            <div class="section">
-                <label for="margem-lucro-final">Margem de Lucro Desejada (%):</label>
-                <input type="number" id="margem-lucro-final" name="margem-lucro-final" step="0.01" required value="0" onchange="calcularPrecoVendaFinal()">
-            </div>
-
-               <div class="section total">
-                <span>Total (com Margem de Lucro):</span>
-                <span id="total-final">R$ 0,00</span>
-            </div>
-
-            <hr class="total-line">
-    		<div class="section">
-    			<span>Taxa de Compra a Crédito:</span>
-    			<span id="taxa-credito-valor">R$ 0,00</span>
-    		</div>
-    		<div class="section">
-    		    <label>Incluir taxa de crédito?</label>
-    			<label><input type="radio" id="incluir-taxa-credito-sim" name="incluir-taxa-credito" value="sim"> Sim</label>
-                <label><input type="radio" id="incluir-taxa-credito-nao" name="incluir-taxa-credito" value="nao" checked> Não</label>
-    			<input type="number" id="taxa-credito-percentual"  step="0.01" value = "6.00" style="width:60px; margin-left: 5px;">%
-    			<button type="button" onclick="salvarTaxaCredito()">Salvar</button>
-    		</div>
-
-    		<div class="section total">
-    			<span>Total Final (com Taxas):</span>
-    			<span id="total-final-com-taxas">R$ 0,00</span>
-    		</div>
-        </div>
-        <div style="text-align: center; margin-top: 20px;">
-            <button type="button" onclick="gerarNotaPrecificacao()">Gerar Nota de Precificação</button>
-        </div>
+      <!--Seu conteudo-->
     </section>
     <section id="precificacoes-geradas" class="subpagina" style="display: none;">
-        <h2>Precificações Geradas</h2>
+       <!--Seu conteudo-->
 
-        <div class="form-group">
-            <input type="text" id="busca-precificacao" placeholder="Buscar por número, ano ou cliente..." onkeyup="buscarPrecificacoesGeradas()">
-        </div>
-
-        <table id="tabela-precificacoes-geradas" class="tabela-gerada">
-            <thead>
-                <tr>
-                    <th>Número e Ano</th>
-                    <th>Nome do Cliente</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <div id="detalhe-precificacao-container" style="display: none; margin-top: 20px;">
-        </div>
     </section>
 </div>
 
