@@ -7,14 +7,14 @@ import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, q
 
 // ==== INÍCIO SEÇÃO - CONFIGURAÇÃO FIREBASE ====
 const firebaseConfig = {
-    apiKey: "AIzaSyAydkMsxydduoAFD9pdtg_KIFuckA_PIkE",
-    authDomain: "precificacao-64b06.firebaseapp.com",
-    databaseURL: "https://precificacao-64b06-default-rtdb.firebaseio.com",
-    projectId: "precificacao-64b06",
-    storageBucket: "precificacao-64b06.firebasestorage.app",
-    messagingSenderId: "872035099760",
-    appId: "1:872035099760:web:1c1c7d2ef0f442b366c0b5",
-    measurementId: "G-6THHCNMHD6"
+  apiKey: "AIzaSyAydkMsxydduoAFD9pdtg_KIFuckA_PIkE",
+  authDomain: "precificacao-64b06.firebaseapp.com",
+  databaseURL: "https://precificacao-64b06-default-rtdb.firebaseio.com",
+  projectId: "precificacao-64b06",
+  storageBucket: "precificacao-64b06.firebasestorage.app",
+  messagingSenderId: "872035099760",
+  appId: "1:872035099760:web:1c1c7d2ef0f442b366c0b5",
+  measurementId: "G-6THHCNMHD6"
 };
 // ==== FIM SEÇÃO - CONFIGURAÇÃO FIREBASE ====
 
@@ -327,6 +327,7 @@ async function atualizarTabelaMateriaisInsumos() {
                     break;
             }
             row.insertCell().textContent = dimensoes;
+            row.insertCell().textContent = formatarMoeda(material.valorTotal); // Valor de Loja
             row.insertCell().textContent = formatarMoeda(material.custoUnitario);
 
             const cellAcoes = row.insertCell();
@@ -345,18 +346,20 @@ async function atualizarTabelaMateriaisInsumos() {
     }
 }
 
+// Corrigida: buscarMateriaisCadastrados
 function buscarMateriaisCadastrados() {
     const termoBusca = document.getElementById('busca-material').value.toLowerCase();
     const tbody = document.querySelector('#tabela-materiais-insumos tbody');
     tbody.innerHTML = '';
 
-    materiais.filter(material => material.nome.toLowerCase().includes(termoBusca)).forEach((material) => {
-        const row = tbody.insertRow();
+    materiais.filter(material => material.nome.toLowerCase().includes(termoBusca))
+        .forEach((material) => {
+            const row = tbody.insertRow();
 
-        row.insertCell().textContent = material.nome;
-        row.insertCell().textContent = material.tipo;
+            row.insertCell().textContent = material.nome;
+            row.insertCell().textContent = material.tipo;
 
-        let dimensoes = '';
+            let dimensoes = '';
             switch (material.tipo) {
                 case 'comprimento':
                     dimensoes = `${material.comprimentoCm} cm`;
@@ -374,18 +377,19 @@ function buscarMateriaisCadastrados() {
                     dimensoes = `${material.larguraCm} x ${material.alturaCm} cm`;
                     break;
             }
-        row.insertCell().textContent = dimensoes;
-        row.insertCell().textContent = formatarMoeda(material.custoUnitario);
+            row.insertCell().textContent = dimensoes;
+            row.insertCell().textContent = formatarMoeda(material.valorTotal); // Valor de Loja
+            row.insertCell().textContent = formatarMoeda(material.custoUnitario);
 
-        const cellAcoes = row.insertCell();
-        const btnEditar = document.createElement('button');
-        btnEditar.textContent = 'Editar';
-        btnEditar.onclick = () => editarMaterialInsumo(material.id);
-        const btnRemover = document.createElement('button');
-        btnRemover.textContent = 'Remover';
-        btnRemover.onclick = () => removerMaterialInsumo(material.id);
-        cellAcoes.appendChild(btnEditar);
-        cellAcoes.appendChild(btnRemover);
+            const cellAcoes = row.insertCell();
+            const btnEditar = document.createElement('button');
+            btnEditar.textContent = 'Editar';
+            btnEditar.onclick = () => editarMaterialInsumo(material.id);
+            const btnRemover = document.createElement('button');
+            btnRemover.textContent = 'Remover';
+            btnRemover.onclick = () => removerMaterialInsumo(material.id);
+            cellAcoes.appendChild(btnEditar);
+            cellAcoes.appendChild(btnRemover);
     });
 }
 // MODIFICADO: editarMaterialInsumo
@@ -424,22 +428,7 @@ async function editarMaterialInsumo(materialId) {
     document.getElementById('nome-material').focus();
 }
 
-//MODIFICADA: removerMaterialInsumo - Verifica se o material está em uso
 async function removerMaterialInsumo(materialId, isEditing = false) {
-    // VERIFICAÇÃO: O material está sendo usado em algum produto?
-    const produtosComMaterial = produtos.filter(produto =>
-        produto.materiais.some(item => item.materialId === materialId)
-    );
-
-    if (produtosComMaterial.length > 0) {
-        // IMPEDE A EXCLUSÃO e mostra um alerta
-        alert("Este material não pode ser removido porque está sendo utilizado nos seguintes produtos:\n\n" +
-              produtosComMaterial.map(p => p.nome).join("\n") +
-              "\n\nRemova o material dos produtos antes de excluí-lo.");
-        return; // Sai da função sem excluir
-    }
-
-
     try {
         await deleteDoc(doc(db, "materiais-insumos", materialId));
         if (!isEditing) {
@@ -684,7 +673,7 @@ async function salvarNovoCustoIndiretoLista(botao) {
                 botao.dataset.id = custoId;
             }
 
-                        // Atualiza o array local `custosIndiretosAdicionais`
+                                  // Atualiza o array local `custosIndiretosAdicionais`
             const custoExistenteIndex = custosIndiretosAdicionais.findIndex(c => c.tempIndex === index);
             if (custoExistenteIndex !== -1) {
                 custosIndiretosAdicionais[custoExistenteIndex] = { id: custoId, ...custoData };
@@ -971,7 +960,6 @@ async function cadastrarProduto() {
     }
 }
 
-//CORRIGIDA: atualizarTabelaProdutosCadastrados - Exibe nome do material
 async function atualizarTabelaProdutosCadastrados() {
     const tbody = document.querySelector("#tabela-produtos tbody");
     tbody.innerHTML = "";
@@ -992,7 +980,7 @@ async function atualizarTabelaProdutosCadastrados() {
             const materiaisList = document.createElement("ul");
             produto.materiais.forEach(item => {
                 const listItem = document.createElement("li");
-                listItem.textContent = `${item.material.nome} (${item.quantidade} ${item.tipo})`; //Exibe nome
+                listItem.textContent = `${item.material.nome} (${item.quantidade} ${item.tipo})`;
                 materiaisList.appendChild(listItem);
             });
             materiaisCell.appendChild(materiaisList);
@@ -1037,7 +1025,6 @@ async function atualizarTabelaProdutosCadastrados() {
     }
 }
 
-//CORRIGIDA: buscarProdutosCadastrados - Exibe nome do material
 function buscarProdutosCadastrados() {
     const termoBusca = document.getElementById('busca-produto').value.toLowerCase();
     const tbody = document.querySelector('#tabela-produtos tbody');
@@ -1052,7 +1039,7 @@ function buscarProdutosCadastrados() {
         const materiaisList = document.createElement('ul');
         produto.materiais.forEach(item => {
             const listItem = document.createElement('li');
-            listItem.textContent = `${item.material.nome} (${item.quantidade} ${item.tipo})`;  //CORRIGIDO - Exibe Nome
+            listItem.textContent = `${item.material.nome} (${item.material.tipo})`;
             materiaisList.appendChild(listItem);
         });
         materiaisCell.appendChild(materiaisList);
@@ -1902,7 +1889,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra);
     }
 
-         // Botão "Cadastrar Produto" -  (Proposta 1)
+       // Botão "Cadastrar Produto" -  (Proposta 1)
     const btnCadastrarProduto = document.getElementById('cadastrar-produto-btn');
     if (btnCadastrarProduto) {
         btnCadastrarProduto.addEventListener('click', cadastrarProduto);
