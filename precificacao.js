@@ -2075,6 +2075,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-salvar-taxa-credito').addEventListener('click', salvarTaxaCredito); // Use o ID do botão
     document.getElementById('incluir-taxa-credito-sim').addEventListener('change', calcularTotalComTaxas);
     document.getElementById('incluir-taxa-credito-nao').addEventListener('change', calcularTotalComTaxas);
+   document.getElementById('btn-gerar-nota').addEventListener('click', gerarNotaPrecificacao);
 
 
 });
