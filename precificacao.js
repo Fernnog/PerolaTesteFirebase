@@ -2021,7 +2021,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('produto-pesquisa').addEventListener('input', buscarProdutosAutocomplete);
+    // Removido daqui, pois a função buscarProdutosAutocomplete já foi definida
+    // document.getElementById('produto-pesquisa').addEventListener('input', buscarProdutosAutocomplete);
 
     // Adiciona event listeners para os links de navegação
     const navLinks = document.querySelectorAll('nav ul li a.nav-link');
@@ -2039,7 +2040,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCadastrarMaterialInsumo.addEventListener('click', cadastrarMaterialInsumo);
     }
 
-        // Botão "Salvar" - Mão de Obra
+    // Botão "Salvar" - Mão de Obra
     const btnSalvarMaoDeObra = document.getElementById('btn-salvar-mao-de-obra');
     if (btnSalvarMaoDeObra) {
         btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra); // Usando event listener
@@ -2066,6 +2067,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Adiciona event listener para a busca de produtos
     document.getElementById('busca-produto').addEventListener('keyup', buscarProdutosCadastrados);
+
+    // --- ADICIONADOS EVENT LISTENERS PARA CÁLCULO DA PRECIFICAÇÃO ---
+    document.getElementById('produto-pesquisa').addEventListener('input', buscarProdutosAutocomplete);
+    document.getElementById('horas-produto').addEventListener('change', calcularCustos);
+    document.getElementById('margem-lucro-final').addEventListener('change', calcularPrecoVendaFinal);
+    document.getElementById('btn-salvar-taxa-credito').addEventListener('click', salvarTaxaCredito); // Use o ID do botão
+    document.getElementById('incluir-taxa-credito-sim').addEventListener('change', calcularTotalComTaxas);
+    document.getElementById('incluir-taxa-credito-nao').addEventListener('change', calcularTotalComTaxas);
+
 
 });
 // ==== FIM SEÇÃO - EVENT LISTENERS GERAIS (DOMContentLoaded) ====
