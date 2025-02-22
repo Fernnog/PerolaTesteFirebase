@@ -1489,9 +1489,9 @@ function calcularCustos() {
     const custoProduto = produtoSelecionado ? produtoSelecionado.custoTotal : 0;
     document.getElementById('custo-produto').textContent = formatarMoeda(custoProduto);
 
-    const horasProduto = parseFloat(document.getElementById('horas-produto').value) || 0;
-    const custoMaoDeObra = maoDeObra.valorHora * horasProduto;
-    const custoFerias13o = maoDeObra.custoFerias13o * horasProduto;
+    const horasProduto = parseFloat(document.getElementById('horas-produto').value) || 0; // <--- Valor crucial!
+    const custoMaoDeObra = maoDeObra.valorHora * horasProduto; // Multiplicação correta
+    const custoFerias13o = maoDeObra.custoFerias13o * horasProduto; // Multiplicação correta
     const totalMaoDeObra = custoMaoDeObra + custoFerias13o;
 
     document.getElementById('custo-mao-de-obra-detalhe').textContent = formatarMoeda(custoMaoDeObra);
@@ -1506,7 +1506,7 @@ function calcularCustos() {
         const valorPorHora = custo.valorPorHora !== undefined ? custo.valorPorHora : (custo.valorMensal / maoDeObra.horas);
         return total + valorPorHora;
     }, 0);
-    const custoIndiretoTotal = custoIndiretoTotalPorHora * horasProduto;
+    const custoIndiretoTotal = custoIndiretoTotalPorHora * horasProduto; // Multiplicação correta
 
     document.getElementById('custo-indireto').textContent = formatarMoeda(custoIndiretoTotal);
 
@@ -1527,10 +1527,10 @@ function calcularCustos() {
     document.getElementById('detalhes-custos-indiretos').style.display = 'block';
 
 
-    const subtotal = custoProduto + totalMaoDeObra + custoIndiretoTotal;
+    const subtotal = custoProduto + totalMaoDeObra + custoIndiretoTotal; // Subtotal correto
     document.getElementById('subtotal').textContent = formatarMoeda(subtotal);
 
-    calcularPrecoVendaFinal();
+    calcularPrecoVendaFinal(); // Chama a função para calcular o preço final (já existente)
 }
 
 function carregarDadosProduto(produto) {
@@ -1551,16 +1551,17 @@ function carregarDadosProduto(produto) {
 }
 
 function calcularPrecoVendaFinal() {
+    // Forma mais segura de obter o subtotal (já corrigido na função calcularCustos)
     const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
     const margemLucroFinal = parseFloat(document.getElementById('margem-lucro-final').value) || 0;
 
-    const margemLucroValor = subtotal * (margemLucroFinal / 100);
+    const margemLucroValor = subtotal * (margemLucroFinal / 100); // Cálculo correto
     const totalFinal = subtotal + margemLucroValor;
 
     document.getElementById('margem-lucro-valor').textContent = formatarMoeda(margemLucroValor);
     document.getElementById('total-final').textContent = formatarMoeda(totalFinal);
 
-    calcularTotalComTaxas();
+    calcularTotalComTaxas(); // Chama a função para calcular o total com taxas (já existente)
 }
 
 async function salvarTaxaCredito() {
@@ -1579,17 +1580,17 @@ async function salvarTaxaCredito() {
 }
 
 function calcularTotalComTaxas(){
-
+  // Forma mais segura de obter o total
   const total = parseFloat(document.getElementById('total-final').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
 
-  if(document.getElementById('incluir-taxa-credito-sim').checked){
-    const taxa = total * (taxaCredito.percentual/100);
+  if(document.getElementById('incluir-taxa-credito-sim').checked){ // Verifica se a taxa está habilitada
+    const taxa = total * (taxaCredito.percentual/100); // Cálculo correto
     const totalComTaxas = total + taxa;
     document.getElementById('taxa-credito-valor').textContent = formatarMoeda(taxa);
     document.getElementById('total-final-com-taxas').textContent = formatarMoeda(totalComTaxas);
   } else{
     document.getElementById('taxa-credito-valor').textContent = formatarMoeda(0);
-    document.getElementById('total-final-com-taxas').textContent = formatarMoeda(total);
+    document.getElementById('total-final-com-taxas').textContent = formatarMoeda(total); // Mantém o total sem taxas
   }
 }
 // ==== FIM SEÇÃO - FUNÇÕES CÁLCULO DE PRECIFICAÇÃO ====
@@ -1962,6 +1963,123 @@ function limparPagina() {
 }
 // ==== FIM SEÇÃO - FUNÇÕES DE SALVAR E CARREGAR DADOS ====
 
+// ==== INÍCIO SEÇÃO - FUNÇÕES CÁLCULO DE PRECIFICAÇÃO ====
+// MODIFICADA: calcularCustos (usa valorPorHora dos custos indiretos)
+function calcularCustos() {
+    const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
+    const produtoSelecionado = produtos.find(p => p.nome === produtoSelecionadoNome);
+
+    const custoProduto = produtoSelecionado ? produtoSelecionado.custoTotal : 0;
+    document.getElementById('custo-produto').textContent = formatarMoeda(custoProduto);
+
+    const horasProduto = parseFloat(document.getElementById('horas-produto').value) || 0; // <--- Valor crucial!
+    const custoMaoDeObra = maoDeObra.valorHora * horasProduto; // Multiplicação correta
+    const custoFerias13o = maoDeObra.custoFerias13o * horasProduto; // Multiplicação correta
+    const totalMaoDeObra = custoMaoDeObra + custoFerias13o;
+
+    document.getElementById('custo-mao-de-obra-detalhe').textContent = formatarMoeda(custoMaoDeObra);
+    document.getElementById('custo-ferias-13o-detalhe').textContent = formatarMoeda(custoFerias13o);
+    document.getElementById('total-mao-de-obra').textContent = formatarMoeda(totalMaoDeObra);
+
+    // Soma os custos indiretos *por hora* e multiplica pelas horas do produto.
+    const todosCustosIndiretos = [...custosIndiretosPredefinidos, ...custosIndiretosAdicionais];
+    const custosIndiretosAtivos = todosCustosIndiretos.filter(custo => custo.valorMensal > 0 || custo.valorPorHora > 0); // Considera valorPorHora
+    const custoIndiretoTotalPorHora = custosIndiretosAtivos.reduce((total, custo) => {
+        // Usa valorPorHora, se existir.  Senão, calcula (mas não salva).
+        const valorPorHora = custo.valorPorHora !== undefined ? custo.valorPorHora : (custo.valorMensal / maoDeObra.horas);
+        return total + valorPorHora;
+    }, 0);
+    const custoIndiretoTotal = custoIndiretoTotalPorHora * horasProduto; // Multiplicação correta
+
+    document.getElementById('custo-indireto').textContent = formatarMoeda(custoIndiretoTotal);
+
+
+    const listaCustosIndiretos = document.getElementById('lista-custos-indiretos-detalhes');
+    listaCustosIndiretos.innerHTML = '';
+    custosIndiretosAtivos.forEach(custo => {
+        const li = document.createElement('li');
+
+        // Usa valorPorHora, se existir.  Senão, calcula (e *não* salva).
+        const valorPorHora = custo.valorPorHora !== undefined ? custo.valorPorHora : (custo.valorMensal / maoDeObra.horas);
+        const custoTotalItem = valorPorHora * horasProduto;  // Usa o valor por hora *correto*.
+
+        li.textContent = `${custo.descricao} - ${formatarMoeda(custoTotalItem)}`;
+        listaCustosIndiretos.appendChild(li);
+    });
+
+    document.getElementById('detalhes-custos-indiretos').style.display = 'block';
+
+
+    const subtotal = custoProduto + totalMaoDeObra + custoIndiretoTotal; // Subtotal correto
+    document.getElementById('subtotal').textContent = formatarMoeda(subtotal);
+
+    calcularPrecoVendaFinal(); // Chama a função para calcular o preço final (já existente)
+}
+
+function carregarDadosProduto(produto) {
+
+    document.getElementById('custo-produto').textContent = formatarMoeda(produto.custoTotal);
+
+    const listaMateriais = document.getElementById('lista-materiais-produto');
+    listaMateriais.innerHTML = '';
+
+    produto.materiais.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.material.nome} - ${item.quantidade} ${item.tipo} - ${formatarMoeda(item.custoTotal)}`;
+        listaMateriais.appendChild(li);
+    });
+
+     document.getElementById('detalhes-produto').style.display = 'block';
+
+}
+
+function calcularPrecoVendaFinal() {
+    // Forma mais segura de obter o subtotal (já corrigido na função calcularCustos)
+    const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
+    const margemLucroFinal = parseFloat(document.getElementById('margem-lucro-final').value) || 0;
+
+    const margemLucroValor = subtotal * (margemLucroFinal / 100); // Cálculo correto
+    const totalFinal = subtotal + margemLucroValor;
+
+    document.getElementById('margem-lucro-valor').textContent = formatarMoeda(margemLucroValor);
+    document.getElementById('total-final').textContent = formatarMoeda(totalFinal);
+
+    calcularTotalComTaxas(); // Chama a função para calcular o total com taxas (já existente)
+}
+
+async function salvarTaxaCredito() {
+    taxaCredito.percentual = parseFloat(document.getElementById('taxa-credito-percentual').value);
+    taxaCredito.incluir = document.getElementById('incluir-taxa-credito-sim').checked;
+
+    try {
+        await setDoc(doc(db, "configuracoes", "taxaCredito"), taxaCredito);
+        calcularTotalComTaxas();
+        salvarDados();
+        console.log('Taxa de crédito salva no Firebase!');
+    } catch (error) {
+        console.error("Erro ao salvar taxa de crédito no Firebase:", error);
+        alert('Erro ao salvar taxa de crédito no Firebase.');
+    }
+}
+
+function calcularTotalComTaxas(){
+  // Forma mais segura de obter o total
+  const total = parseFloat(document.getElementById('total-final').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
+
+  if(document.getElementById('incluir-taxa-credito-sim').checked){ // Verifica se a taxa está habilitada
+    const taxa = total * (taxaCredito.percentual/100); // Cálculo correto
+    const totalComTaxas = total + taxa;
+    document.getElementById('taxa-credito-valor').textContent = formatarMoeda(taxa);
+    document.getElementById('total-final-com-taxas').textContent = formatarMoeda(totalComTaxas);
+  } else{
+    document.getElementById('taxa-credito-valor').textContent = formatarMoeda(0);
+    document.getElementById('total-final-com-taxas').textContent = formatarMoeda(total); // Mantém o total sem taxas
+  }
+}
+// ==== FIM SEÇÃO - FUNÇÕES CÁLCULO DE PRECIFICAÇÃO ====
+
+
+
 // ==== INÍCIO SEÇÃO - EVENT LISTENERS GERAIS (DOMContentLoaded) ====
 document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, atualizarInterfaceUsuario);
@@ -2066,6 +2184,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Adiciona event listener para a busca de produtos
     document.getElementById('busca-produto').addEventListener('keyup', buscarProdutosCadastrados);
 
+    // Adiciona event listener para a mudança nas horas do produto
+    document.getElementById('horas-produto').addEventListener('change', calcularCustos);
+
+    // Adiciona event listener para a mudança na margem de lucro
+    document.getElementById('margem-lucro-final').addEventListener('change', calcularPrecoVendaFinal);
+
+    // Adiciona event listeners para a mudança na inclusão da taxa de crédito
+    document.getElementById('incluir-taxa-credito-sim').addEventListener('change', calcularTotalComTaxas);
+    document.getElementById('incluir-taxa-credito-nao').addEventListener('change', calcularTotalComTaxas);
+
 });
 // ==== FIM SEÇÃO - EVENT LISTENERS GERAIS (DOMContentLoaded) ====
-
