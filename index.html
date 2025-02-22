@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
 </head>
 <body>
-
+<!-- ==== INÍCIO SEÇÃO - AUTENTICAÇÃO ==== -->
 <div id="auth-container" class="auth-container">
     <div class="auth-form">
         <h2>Autenticação</h2>
@@ -32,7 +32,9 @@
         <p id="auth-message" class="auth-message">Nenhum usuário autenticado</p>
     </div>
 </div>
+<!-- ==== FIM SEÇÃO - AUTENTICAÇÃO ==== -->
 
+<!-- ==== INÍCIO SEÇÃO - APP CONTAINER ==== -->
 <div id="app-container" style="display: none;">
     <header>
         <div class="top-bar">
@@ -59,7 +61,7 @@
         <hr class="menu">
     </header>
 
-    <!-- Seção Materiais e Insumos -->
+    <!-- ==== INÍCIO SEÇÃO - MATERIAIS E INSUMOS ==== -->
     <section id="materiais-insumos" class="subpagina" style="display: none;">
         <h2 id="titulo-materiais-insumos">Cadastro de Materiais e Insumos</h2>
         <hr class="aviso-separador">
@@ -134,8 +136,9 @@
             </tbody>
         </table>
     </section>
+    <!-- ==== FIM SEÇÃO - MATERIAIS E INSUMOS ==== -->
 
-    <!-- Seção Mão de Obra -->
+    <!-- ==== INÍCIO SEÇÃO - MÃO DE OBRA ==== -->
     <section id="mao-de-obra" class="subpagina" style="display: none;">
         <h2 id="titulo-mao-de-obra">Informações sobre custo de mão de obra</h2>
         <form id="form-mao-de-obra">
@@ -152,7 +155,7 @@
                 <input type="number" id="valor-hora" name="valor-hora" step="0.01" readonly>
             </div>
 <button type="button" id='btn-salvar-mao-de-obra'>Salvar</button>
-<button type="button" style="display:none;" id='btn-editar-mao-de-obra'>Editar</button>   
+<button type="button" style="display:none;" id='btn-editar-mao-de-obra'>Editar</button>
 
 
 
@@ -172,8 +175,9 @@
 
         </form>
     </section>
+    <!-- ==== FIM SEÇÃO - MÃO DE OBRA ==== -->
 
-    <!-- Seção Custos Indiretos -->
+    <!-- ==== INÍCIO SEÇÃO - CUSTOS INDIRETOS ==== -->
     <section id="custos-indiretos" class="subpagina" style="display: none;">
        <h2 id="titulo-custos-indiretos">Cadastro de Custos Indiretos</h2>
         <p style="text-align: center;">Custos indiretos são considerados para o período de um mês.</p>
@@ -200,9 +204,10 @@
             </tbody>
         </table>
     </section>
+    <!-- ==== FIM SEÇÃO - CUSTOS INDIRETOS ==== -->
 
 
-    <!-- Seção Produtos Cadastrados -->
+    <!-- ==== INÍCIO SEÇÃO - PRODUTOS CADASTRADOS ==== -->
     <section id="produtos-cadastrados" class="subpagina" style="display: none;">
         <h2 id="titulo-novo-produto">Cadastro de Novo Produto</h2>
         <form id="form-produtos-cadastrados">
@@ -256,100 +261,108 @@
             </tbody>
         </table>
     </section>
+    <!-- ==== FIM SEÇÃO - PRODUTOS CADASTRADOS ==== -->
 
-    <!-- Seção Cálculo da Precificação -->
-    <section id="calculo-precificacao" class="subpagina">
-        <h2>Cálculo da Precificação</h2>
-        <div class="form-group">
-            <label for="nome-cliente">Nome do Cliente (Opcional):</label>
-            <input type="text" id="nome-cliente" name="nome-cliente" placeholder="Insira o nome do cliente">
-        </div>
-        <div class="calculation-container">
-            <div class="section">
-                <label for="produto-pesquisa">Pesquisar Produto:</label>
-                <input type="text" id="produto-pesquisa" oninput="buscarProdutosAutocomplete()" placeholder="Digite o nome do produto...">
-                <div id="produto-resultados" class="hidden"></div>
-                <span class="bracket">}</span>
-                <span id="custo-produto">R$ 0,00</span>
+    <!-- ==== INÍCIO SEÇÃO - CÁLCULO DA PRECIFICAÇÃO ==== -->
+        <section id="calculo-precificacao" class="subpagina">
+            <h2>Cálculo da Precificação</h2>
+            <div class="form-group">
+                <label for="nome-cliente">Nome do Cliente (Opcional):</label>
+                <input type="text" id="nome-cliente" name="nome-cliente" placeholder="Insira o nome do cliente">
             </div>
-            <div id="detalhes-produto" style="display: none;">
-                <h3>Materiais do Produto:</h3>
-                <ul id="lista-materiais-produto">
-                </ul>
-            </div>
+            <div class="calculation-container">
+                <div class="section">
+                    <label for="produto-pesquisa">Pesquisar Produto:</label>
+                    <!-- Removido oninput -->
+                    <input type="text" id="produto-pesquisa" placeholder="Digite o nome do produto...">
+                    <div id="produto-resultados" class="hidden"></div>
+                    <span class="bracket">}</span>
+                    <span id="custo-produto">R$ 0,00</span>
+                </div>
+                <div id="detalhes-produto" style="display: none;">
+                    <h3>Materiais do Produto:</h3>
+                    <ul id="lista-materiais-produto">
+                    </ul>
+                </div>
 
-            <div class="section">
-                <label for="horas-produto">Horas para Concluir o Produto:</label>
-                <input type="number" id="horas-produto" value="1" min="1" onchange="calcularCustos()">
-                <span class="bracket">}</span>
-                <div id="detalhes-mao-de-obra">
-                  <div class="custo-detalhe">
-                    <span>Custo Mão de Obra:</span>
-                    <span id="custo-mao-de-obra-detalhe">R$ 0,00</span>
-                  </div>
-                  <div class="custo-detalhe">
-                    <span>Custo 13º e Férias:</span>
-                    <span id="custo-ferias-13o-detalhe">R$ 0,00</span>
-                   </div>
-                    <div class="custo-detalhe">
-                        <span><b>Total Mão de Obra:</b></span>
-                        <span id="total-mao-de-obra"><b>R$ 0,00</b></span>
+                <div class="section">
+                    <label for="horas-produto">Horas para Concluir o Produto:</label>
+                    <!-- Removido onchange -->
+                    <input type="number" id="horas-produto" value="1" min="1">
+                    <span class="bracket">}</span>
+                    <div id="detalhes-mao-de-obra">
+                      <div class="custo-detalhe">
+                        <span>Custo Mão de Obra:</span>
+                        <span id="custo-mao-de-obra-detalhe">R$ 0,00</span>
+                      </div>
+                      <div class="custo-detalhe">
+                        <span>Custo 13º e Férias:</span>
+                        <span id="custo-ferias-13o-detalhe">R$ 0,00</span>
+                       </div>
+                        <div class="custo-detalhe">
+                            <span><b>Total Mão de Obra:</b></span>
+                            <span id="total-mao-de-obra"><b>R$ 0,00</b></span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="section">
-                <label>Custos Indiretos (por hora):</label>
-                 <span class="bracket">}</span>
-                <span id="custo-indireto">R$ 0,00</span>
-             </div>
-            <div id="detalhes-custos-indiretos">
-                <h3>Custos Indiretos Detalhados:</h3>
-                <ul id="lista-custos-indiretos-detalhes">
-                </ul>
-            </div>
-            <hr class="subtotal-line">
+                <div class="section">
+                    <label>Custos Indiretos (por hora):</label>
+                     <span class="bracket">}</span>
+                    <span id="custo-indireto">R$ 0,00</span>
+                 </div>
+                <div id="detalhes-custos-indiretos">
+                    <h3>Custos Indiretos Detalhados:</h3>
+                    <ul id="lista-custos-indiretos-detalhes">
+                    </ul>
+                </div>
+                <hr class="subtotal-line">
 
-            <div class="section subtotal">
-                <span>Subtotal:</span>
-                <span id="subtotal">R$ 0,00</span>
-            </div>
-            <div class="section">
-                <span>Margem de Lucro:</span>
-                <span id="margem-lucro-valor">R$ 0,00</span>
-            </div>
+                <div class="section subtotal">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">R$ 0,00</span>
+                </div>
+                <div class="section">
+                    <span>Margem de Lucro:</span>
+                    <span id="margem-lucro-valor">R$ 0,00</span>
+                </div>
 
-            <div class="section">
-                <label for="margem-lucro-final">Margem de Lucro Desejada (%):</label>
-                <input type="number" id="margem-lucro-final" name="margem-lucro-final" step="0.01" required value="0" onchange="calcularPrecoVendaFinal()">
+                <div class="section">
+                    <label for="margem-lucro-final">Margem de Lucro Desejada (%):</label>
+                    <!-- Removido onchange -->
+                    <input type="number" id="margem-lucro-final" name="margem-lucro-final" step="0.01" required value="0">
+                </div>
+
+                   <div class="section total">
+                    <span>Total (com Margem de Lucro):</span>
+                    <span id="total-final">R$ 0,00</span>
+                </div>
+
+                <hr class="total-line">
+                <div class="section">
+                    <span>Taxa de Compra a Crédito:</span>
+                    <span id="taxa-credito-valor">R$ 0,00</span>
+                </div>
+                <div class="section">
+                    <label>Incluir taxa de crédito?</label>
+                    <label><input type="radio" id="incluir-taxa-credito-sim" name="incluir-taxa-credito" value="sim"> Sim</label>
+                    <label><input type="radio" id="incluir-taxa-credito-nao" name="incluir-taxa-credito" value="nao" checked> Não</label>
+                    <input type="number" id="taxa-credito-percentual"  step="0.01" value = "6.00" style="width:60px; margin-left: 5px;">%
+                    <!-- Removido onclick, adicionado id -->
+                    <button type="button" id="btn-salvar-taxa-credito">Salvar</button>
+                </div>
+
+                <div class="section total">
+                    <span>Total Final (com Taxas):</span>
+                    <span id="total-final-com-taxas">R$ 0,00</span>
+                </div>
             </div>
-
-               <div class="section total">
-                <span>Total (com Margem de Lucro):</span>
-                <span id="total-final">R$ 0,00</span>
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="button" onclick="gerarNotaPrecificacao()">Gerar Nota de Precificação</button>
             </div>
+        </section>
+    <!-- ==== FIM SEÇÃO - CÁLCULO DA PRECIFICAÇÃO ==== -->
 
-            <hr class="total-line">
-    		<div class="section">
-    			<span>Taxa de Compra a Crédito:</span>
-    			<span id="taxa-credito-valor">R$ 0,00</span>
-    		</div>
-    		<div class="section">
-    		    <label>Incluir taxa de crédito?</label>
-    			<label><input type="radio" id="incluir-taxa-credito-sim" name="incluir-taxa-credito" value="sim"> Sim</label>
-                <label><input type="radio" id="incluir-taxa-credito-nao" name="incluir-taxa-credito" value="nao" checked> Não</label>
-    			<input type="number" id="taxa-credito-percentual"  step="0.01" value = "6.00" style="width:60px; margin-left: 5px;">%
-    			<button type="button" onclick="salvarTaxaCredito()">Salvar</button>
-    		</div>
-
-    		<div class="section total">
-    			<span>Total Final (com Taxas):</span>
-    			<span id="total-final-com-taxas">R$ 0,00</span>
-    		</div>
-        </div>
-        <div style="text-align: center; margin-top: 20px;">
-            <button type="button" onclick="gerarNotaPrecificacao()">Gerar Nota de Precificação</button>
-        </div>
-    </section>
+    <!-- ==== INÍCIO SEÇÃO - PRECIFICAÇÕES GERADAS ==== -->
     <section id="precificacoes-geradas" class="subpagina" style="display: none;">
         <h2>Precificações Geradas</h2>
 
@@ -371,8 +384,9 @@
         <div id="detalhe-precificacao-container" style="display: none; margin-top: 20px;">
         </div>
     </section>
+    <!-- ==== FIM SEÇÃO - PRECIFICAÇÕES GERADAS ==== -->
 </div>
-
+<!-- ==== FIM SEÇÃO - APP CONTAINER ==== -->
 
 <script src="precificacao.js" type="module"></script>
 
