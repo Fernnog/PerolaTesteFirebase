@@ -1359,7 +1359,8 @@ async function editarProduto(produtoId) {
 
     // Preenche a tabela de materiais com os dados do produto
     produtoEmEdicao.materiais.forEach(item => {
-        // Encontra o material original completo no array 'materiais' USANDO O ID
+        
+              // Encontra o material original completo no array 'materiais' USANDO O ID
         const materialCompleto = materiais.find(m => m.id === item.materialId);
 
 
@@ -1480,7 +1481,7 @@ function selecionarProduto(produto) {
 }
 // ==== FIM SEÇÃO - FUNÇÕES PRODUTOS CADASTRADOS ====
 
-/ ==== INÍCIO SEÇÃO - FUNÇÕES CÁLCULO DE PRECIFICAÇÃO ====
+// ==== INÍCIO SEÇÃO - FUNÇÕES CÁLCULO DE PRECIFICAÇÃO ====
 // MODIFICADA: calcularCustos (usa valorPorHora dos custos indiretos)
 function calcularCustos() {
     const produtoSelecionadoNome = document.getElementById('produto-pesquisa').value;
@@ -1489,9 +1490,9 @@ function calcularCustos() {
     const custoProduto = produtoSelecionado ? produtoSelecionado.custoTotal : 0;
     document.getElementById('custo-produto').textContent = formatarMoeda(custoProduto);
 
-    const horasProduto = parseFloat(document.getElementById('horas-produto').value) || 0; // <--- Valor crucial!
-    const custoMaoDeObra = maoDeObra.valorHora * horasProduto; // Multiplicação correta
-    const custoFerias13o = maoDeObra.custoFerias13o * horasProduto; // Multiplicação correta
+    const horasProduto = parseFloat(document.getElementById('horas-produto').value) || 0;
+    const custoMaoDeObra = maoDeObra.valorHora * horasProduto;
+    const custoFerias13o = maoDeObra.custoFerias13o * horasProduto;
     const totalMaoDeObra = custoMaoDeObra + custoFerias13o;
 
     document.getElementById('custo-mao-de-obra-detalhe').textContent = formatarMoeda(custoMaoDeObra);
@@ -1506,7 +1507,7 @@ function calcularCustos() {
         const valorPorHora = custo.valorPorHora !== undefined ? custo.valorPorHora : (custo.valorMensal / maoDeObra.horas);
         return total + valorPorHora;
     }, 0);
-    const custoIndiretoTotal = custoIndiretoTotalPorHora * horasProduto; // Multiplicação correta
+    const custoIndiretoTotal = custoIndiretoTotalPorHora * horasProduto;
 
     document.getElementById('custo-indireto').textContent = formatarMoeda(custoIndiretoTotal);
 
@@ -1527,10 +1528,10 @@ function calcularCustos() {
     document.getElementById('detalhes-custos-indiretos').style.display = 'block';
 
 
-    const subtotal = custoProduto + totalMaoDeObra + custoIndiretoTotal; // Subtotal correto
+    const subtotal = custoProduto + totalMaoDeObra + custoIndiretoTotal;
     document.getElementById('subtotal').textContent = formatarMoeda(subtotal);
 
-    calcularPrecoVendaFinal(); // Chama a função para calcular o preço final (já existente)
+    calcularPrecoVendaFinal();
 }
 
 function carregarDadosProduto(produto) {
@@ -1551,17 +1552,16 @@ function carregarDadosProduto(produto) {
 }
 
 function calcularPrecoVendaFinal() {
-    // Forma mais segura de obter o subtotal (já corrigido na função calcularCustos)
     const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
     const margemLucroFinal = parseFloat(document.getElementById('margem-lucro-final').value) || 0;
 
-    const margemLucroValor = subtotal * (margemLucroFinal / 100); // Cálculo correto
+    const margemLucroValor = subtotal * (margemLucroFinal / 100);
     const totalFinal = subtotal + margemLucroValor;
 
     document.getElementById('margem-lucro-valor').textContent = formatarMoeda(margemLucroValor);
     document.getElementById('total-final').textContent = formatarMoeda(totalFinal);
 
-    calcularTotalComTaxas(); // Chama a função para calcular o total com taxas (já existente)
+    calcularTotalComTaxas();
 }
 
 async function salvarTaxaCredito() {
@@ -1580,17 +1580,17 @@ async function salvarTaxaCredito() {
 }
 
 function calcularTotalComTaxas(){
-  // Forma mais segura de obter o total
+
   const total = parseFloat(document.getElementById('total-final').textContent.replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.')) || 0;
 
-  if(document.getElementById('incluir-taxa-credito-sim').checked){ // Verifica se a taxa está habilitada
-    const taxa = total * (taxaCredito.percentual/100); // Cálculo correto
+  if(document.getElementById('incluir-taxa-credito-sim').checked){
+    const taxa = total * (taxaCredito.percentual/100);
     const totalComTaxas = total + taxa;
     document.getElementById('taxa-credito-valor').textContent = formatarMoeda(taxa);
     document.getElementById('total-final-com-taxas').textContent = formatarMoeda(totalComTaxas);
   } else{
     document.getElementById('taxa-credito-valor').textContent = formatarMoeda(0);
-    document.getElementById('total-final-com-taxas').textContent = formatarMoeda(total); // Mantém o total sem taxas
+    document.getElementById('total-final-com-taxas').textContent = formatarMoeda(total);
   }
 }
 // ==== FIM SEÇÃO - FUNÇÕES CÁLCULO DE PRECIFICAÇÃO ====
@@ -2039,7 +2039,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCadastrarMaterialInsumo.addEventListener('click', cadastrarMaterialInsumo);
     }
 
-    // Botão "Salvar" - Mão de Obra
+        // Botão "Salvar" - Mão de Obra
     const btnSalvarMaoDeObra = document.getElementById('btn-salvar-mao-de-obra');
     if (btnSalvarMaoDeObra) {
         btnSalvarMaoDeObra.addEventListener('click', salvarMaoDeObra); // Usando event listener
@@ -2066,16 +2066,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Adiciona event listener para a busca de produtos
     document.getElementById('busca-produto').addEventListener('keyup', buscarProdutosCadastrados);
-
-    // Adiciona event listener para a mudança nas horas do produto
-    document.getElementById('horas-produto').addEventListener('change', calcularCustos);
-
-    // Adiciona event listener para a mudança na margem de lucro
-    document.getElementById('margem-lucro-final').addEventListener('change', calcularPrecoVendaFinal);
-
-    // Adiciona event listeners para a mudança na inclusão da taxa de crédito
-    document.getElementById('incluir-taxa-credito-sim').addEventListener('change', calcularTotalComTaxas);
-    document.getElementById('incluir-taxa-credito-nao').addEventListener('change', calcularTotalComTaxas);
 
 });
 // ==== FIM SEÇÃO - EVENT LISTENERS GERAIS (DOMContentLoaded) ====
