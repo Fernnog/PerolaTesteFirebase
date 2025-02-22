@@ -1,8 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
+/* Paleta de cores e variáveis */
+:root {
+    --cor-principal: #7aa2a9;
+    --cor-secundaria: #dfb6b0;
+    --cor-autenticacao-1: #687f82;      /* Botões */
+    --cor-autenticacao-2: #ecd5d1;      /* Fundo da seção de autenticação */
+    --cor-fundo: #f0f2f5;             /* Fundo geral da página */
+}
+
 body {
     font-family: 'Roboto', Arial, sans-serif;
-    background-color: #f0f2f5;
+    background-color: var(--cor-fundo);
     color: #333;
     margin: 0;
     padding: 0;
@@ -12,8 +21,10 @@ body {
     min-height: 100vh;
 }
 
+/* ====  ESTILOS PARA A TELA DE AUTENTICAÇÃO  ==== */
+
 .auth-container {
-    background-color: #e3f2fd;
+    background-color: var(--cor-autenticacao-2); /* CORRIGIDO! Fundo #ecd5d1 */
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
@@ -27,7 +38,7 @@ body {
 }
 
 .auth-form h2 {
-    color: #3f51b5;
+    color: var(--cor-autenticacao-1); /* Cor mais suave para o título */
     margin-bottom: 20px;
 }
 
@@ -51,9 +62,18 @@ body {
     border-radius: 20px;
     font-size: 16px;
     margin-bottom: 10px;
-    background-color: #ffffff; /* Alterado para fundo branco - Opção 1 */
+    background-color: #fff;  /* Fundo branco - pode mudar para #ecd5d1 */
     color: #333;
 }
+
+/* Opcional:  Fundo #ecd5d1 para os inputs da tela de autenticação */
+/*
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+    background-color: #ecd5d1;
+    color: #333;
+}
+*/
 
 .auth-buttons {
     display: flex;
@@ -61,8 +81,9 @@ body {
     margin-bottom: 15px;
 }
 
-.auth-buttons button, .auth-form button[type="button"]:not(.forgot-password), #logoutBtn {
-    background-color: #3f51b5;
+/* Botões na tela de autenticação */
+.auth-buttons button, .auth-form button[type="button"]:not(.forgot-password) {
+    background-color: var(--cor-autenticacao-1); /* Cor de fundo dos botões */
     color: white;
     padding: 10px 20px;
     border: none;
@@ -72,22 +93,22 @@ body {
     transition: background-color 0.3s ease;
 }
 
-.auth-buttons button:hover, .auth-form button[type="button"]:not(.forgot-password):hover, #logoutBtn:hover {
-    background-color: #303f9f;
+.auth-buttons button:hover, .auth-form button[type="button"]:not(.forgot-password):hover {
+    background-color: #7a9fa7; /* Cor mais escura no hover */
 }
 
-.auth-form .forgot-password, #logoutBtn.logout-button {
+.auth-form .forgot-password {
     background: none;
     border: none;
-    color: #3f51b5;
+    color: var(--cor-autenticacao-1); /* Cor do link "Esqueci minha senha" */
     cursor: pointer;
     text-decoration: underline;
     font-size: 0.9em;
     margin-top: 10px;
 }
 
-.auth-form .forgot-password:hover, #logoutBtn.logout-button:hover {
-    color: #303f9f;
+.auth-form .forgot-password:hover {
+    color: #7a9fa7; /* Cor mais escura no hover */
 }
 
 .auth-message {
@@ -95,6 +116,40 @@ body {
     color: #555;
     font-size: 0.9em;
 }
+
+/* ====  ESTILOS PARA A TOP-BAR (autenticado)  ==== */
+
+/* Estilos da top-bar quando autenticado */
+body.authenticated .top-bar-content {
+    background-color: var(--cor-autenticacao-2); /* Cor de fundo suave - #ecd5d1 */
+}
+
+body.authenticated #logoutBtn.logout-button {
+     background-color: var(--cor-autenticacao-1); /* Cor botão logout */
+}
+body.authenticated #logoutBtn.logout-button:hover {
+    background-color: #7a9fa7;
+}
+
+body.authenticated .top-bar .user-info {
+     color: #333; /* Cor do texto do usuário */
+}
+
+/* ====  ESTILOS PARA O SLOGAN  ==== */
+
+.slogan {
+    margin-top: 20px; /* Espaço acima do slogan */
+    color: #555;    /* Cor do texto do slogan */
+}
+
+/* Logo na tela de autenticação */
+.auth-form .logo-container{
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
+/* ====  RESTANTE DOS ESTILOS (já existentes)  ==== */
+
 
 #app-container {
     width: 90%;
