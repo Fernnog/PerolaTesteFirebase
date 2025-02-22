@@ -5,7 +5,7 @@
     --cor-principal: #7aa2a9;
     --cor-secundaria: #dfb6b0;
     --cor-autenticacao-1: #687f82;      /* Botões */
-    --cor-autenticacao-2: #ecd5d1;      /* Fundo da seção de autenticação */
+    --cor-autenticacao-2: #ecd5d1;      /* Fundo da seção de autenticação E user-info */
     --cor-fundo: #f0f2f5;             /* Fundo geral da página */
 }
 
@@ -24,7 +24,7 @@ body {
 /* ====  ESTILOS PARA A TELA DE AUTENTICAÇÃO  ==== */
 
 .auth-container {
-    background-color: var(--cor-autenticacao-2); /* CORRIGIDO! Fundo #ecd5d1 */
+    background-color: var(--cor-autenticacao-2); /*  Fundo #e5c4bf */
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
@@ -62,15 +62,15 @@ body {
     border-radius: 20px;
     font-size: 16px;
     margin-bottom: 10px;
-    background-color: #fff;  /* Fundo branco - pode mudar para #ecd5d1 */
+    background-color: #fff;  /* Fundo branco - pode mudar para #e5c4bf */
     color: #333;
 }
 
-/* Opcional:  Fundo #ecd5d1 para os inputs da tela de autenticação */
+/* Opcional:  Fundo #e5c4bf para os inputs da tela de autenticação */
 /*
 .auth-form input[type="email"],
 .auth-form input[type="password"] {
-    background-color: #ecd5d1;
+    background-color: #e5c4bf;
     color: #333;
 }
 */
@@ -94,7 +94,7 @@ body {
 }
 
 .auth-buttons button:hover, .auth-form button[type="button"]:not(.forgot-password):hover {
-    background-color: #7a9fa7; /* Cor mais escura no hover */
+    background-color: #4a5c5e; /* Cor mais escura no hover */
 }
 
 .auth-form .forgot-password {
@@ -108,7 +108,7 @@ body {
 }
 
 .auth-form .forgot-password:hover {
-    color: #7a9fa7; /* Cor mais escura no hover */
+    color: #4a5c5e; /* Cor mais escura no hover */
 }
 
 .auth-message {
@@ -119,20 +119,40 @@ body {
 
 /* ====  ESTILOS PARA A TOP-BAR (autenticado)  ==== */
 
-/* Estilos da top-bar quando autenticado */
-body.authenticated .top-bar-content {
-    background-color: var(--cor-autenticacao-2); /* Cor de fundo suave - #ecd5d1 */
+/* Estilos *específicos* para a top-bar quando autenticado */
+body.authenticated .top-bar .user-info {
+    color: #333; /* Mantém a cor do texto (ou ajuste se quiser) */
+    background-color: var(--cor-autenticacao-2); /* Fundo #ecd5d1 para o texto */
+    padding: 5px 10px; /* Espaçamento interno para o fundo */
+    border-radius: 20px; /* Bordas arredondadas */
+    display: inline-block; /* Importante para o padding e border-radius funcionarem */
 }
 
 body.authenticated #logoutBtn.logout-button {
-     background-color: var(--cor-autenticacao-1); /* Cor botão logout */
-}
-body.authenticated #logoutBtn.logout-button:hover {
-    background-color: #7a9fa7;
+    background-color: var(--cor-autenticacao-1); /* Cor #687f82 para o botão */
+    color: white; /* Mantém o texto em branco */
+     /*Outras propriedades já existentes do botão*/
+    margin: 0;
+    padding: 8px 15px; /* Ajusta o padding para combinar com o container */
+    border-radius: 20px;
+    font-size: 14px; /* Ajusta o tamanho da fonte se necessário */
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
 }
 
-body.authenticated .top-bar .user-info {
-     color: #333; /* Cor do texto do usuário */
+body.authenticated #logoutBtn.logout-button:hover {
+    background-color: #4a5c5e; /* Cor mais escura no hover (ajuste) */
+}
+/*Manter fundo da .top-bar-content original*/
+ .top-bar-content {
+    background-color: #e3f2fd; /* Fundo claro e delicado - mesmo do auth-container */
+    padding: 8px 15px; /* Adiciona um pouco de padding interno */
+    border-radius: 20px; /* Arredonda as bordas para combinar com outros elementos */
+    display: flex;         /* Para alinhar user-info e logoutBtn horizontalmente */
+    align-items: center;   /* Alinha verticalmente os itens dentro */
+    justify-content: space-between; /* Espaçamento entre user-info e logoutBtn se necessário */
+    gap: 15px;             /* Espaçamento entre os itens dentro (user-info e logoutBtn) */
 }
 
 /* ====  ESTILOS PARA O SLOGAN  ==== */
@@ -149,7 +169,6 @@ body.authenticated .top-bar .user-info {
 }
 
 /* ====  RESTANTE DOS ESTILOS (já existentes)  ==== */
-
 
 #app-container {
     width: 90%;
@@ -227,7 +246,6 @@ nav ul li:hover > a {
     background-color: #e8d7d4;
 }
 
-
 .subpagina {
     margin-top: 20px;
 }
@@ -274,7 +292,7 @@ textarea {
     color: #fff;
 }
 
-button, #logoutBtn.logout-button {
+button,  #logoutBtn.logout-button{
     background-color: #7aa2a9;
     color: white;
     padding: 10px 20px;
@@ -629,15 +647,7 @@ td {
     padding: 10px 20px;
 }
 
-.top-bar-content {
-    background-color: #e3f2fd; /* Fundo claro e delicado - mesmo do auth-container */
-    padding: 8px 15px; /* Adiciona um pouco de padding interno */
-    border-radius: 20px; /* Arredonda as bordas para combinar com outros elementos */
-    display: flex;         /* Para alinhar user-info e logoutBtn horizontalmente */
-    align-items: center;   /* Alinha verticalmente os itens dentro */
-    justify-content: space-between; /* Espaçamento entre user-info e logoutBtn se necessário */
-    gap: 15px;             /* Espaçamento entre os itens dentro (user-info e logoutBtn) */
-}
+/*Removido .top-bar-content e colocado acima*/
 
 .top-bar .user-info {
     font-size: 0.9em;
@@ -646,15 +656,7 @@ td {
     margin: 0;     /* Remove margens padrão se houver */
 }
 
-#logoutBtn.logout-button {
-    margin: 0;
-    background-color: #7aa2a9; /* Mantém a cor original do botão de logout */
-    color: white;
-    padding: 8px 15px; /* Ajusta o padding para combinar com o container */
-    border-radius: 20px;
-    font-size: 14px; /* Ajusta o tamanho da fonte se necessário */
-}
-
+/*Removido #logoutBtn.logout-button e colocado acima*/
 
 .tabela-precificacao-detalhada {
     width: 95%;
