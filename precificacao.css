@@ -21,102 +21,6 @@ body {
     min-height: 100vh;
 }
 
-/* ====  ESTILOS PARA A TELA DE AUTENTICAÇÃO  ==== */
-
-.auth-container {
-    background-color: var(--cor-autenticacao-2); /*  Fundo #e5c4bf */
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.auth-form {
-    width: 300px;
-    margin: 0 auto;
-}
-
-.auth-form h2 {
-    color: var(--cor-autenticacao-1); /* Cor mais suave para o título */
-    margin-bottom: 20px;
-}
-
-.auth-form .form-group {
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-.auth-form label {
-    display: block;
-    margin-bottom: 5px;
-    color: #555;
-    font-weight: bold;
-}
-
-.auth-form input[type="email"],
-.auth-form input[type="password"] {
-    width: calc(100% - 20px);
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    font-size: 16px;
-    margin-bottom: 10px;
-    background-color: #fff;  /* Fundo branco - pode mudar para #e5c4bf */
-    color: #333;
-}
-
-/* Opcional:  Fundo #e5c4bf para os inputs da tela de autenticação */
-/*
-.auth-form input[type="email"],
-.auth-form input[type="password"] {
-    background-color: #e5c4bf;
-    color: #333;
-}
-*/
-
-.auth-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
-
-/* Botões na tela de autenticação */
-.auth-buttons button, .auth-form button[type="button"]:not(.forgot-password) {
-    background-color: var(--cor-autenticacao-1); /* Cor de fundo dos botões */
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 20px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.auth-buttons button:hover, .auth-form button[type="button"]:not(.forgot-password):hover {
-    background-color: #4a5c5e; /* Cor mais escura no hover */
-}
-
-.auth-form .forgot-password {
-    background: none;
-    border: none;
-    color: var(--cor-autenticacao-1); /* Cor do link "Esqueci minha senha" */
-    cursor: pointer;
-    text-decoration: underline;
-    font-size: 0.9em;
-    margin-top: 10px;
-}
-
-.auth-form .forgot-password:hover {
-    color: #4a5c5e; /* Cor mais escura no hover */
-}
-
-.auth-message {
-    margin-top: 15px;
-    color: #555;
-    font-size: 0.9em;
-}
-
 /* ====  ESTILOS PARA A TOP-BAR (autenticado)  ==== */
 
 /* Estilos *específicos* para a top-bar quando autenticado */
@@ -155,18 +59,13 @@ body.authenticated #logoutBtn.logout-button:hover {
     gap: 15px;             /* Espaçamento entre os itens dentro (user-info e logoutBtn) */
 }
 
-/* ====  ESTILOS PARA O SLOGAN  ==== */
+/* ====  ESTILOS PARA O SLOGAN  ==== *//*Removido, pois foi para login*/
 
-.slogan {
-    margin-top: 20px; /* Espaço acima do slogan */
-    color: #555;    /* Cor do texto do slogan */
-}
-
-/* Logo na tela de autenticação */
-.auth-form .logo-container{
+/* Logo na tela de autenticação */ /*Removido, pois foi para login*/
+/*.auth-form .logo-container{
     margin-top: 0px;
     margin-bottom: 10px;
-}
+}*/
 
 /* ====  RESTANTE DOS ESTILOS (já existentes)  ==== */
 
