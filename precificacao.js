@@ -1,8 +1,8 @@
 // ==== INÍCIO SEÇÃO - IMPORTS FIREBASE SDKS ====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"; // Import *apenas* signOut e onAuthStateChanged
+import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 // ==== FIM SEÇÃO - IMPORTS FIREBASE SDKS ====
 
 // ==== INÍCIO SEÇÃO - CONFIGURAÇÃO FIREBASE ====
@@ -59,74 +59,32 @@ let usuarioLogado = null;
 let materialEmEdicao = null; // Variável para controlar a edição de materiais
 // ==== FIM SEÇÃO - VARIÁVEIS GLOBAIS ====
 
-// ==== INÍCIO SEÇÃO - FUNÇÕES DE AUTENTICAÇÃO FIREBASE ====
-async function registrarUsuario(email, password) {
-    try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        document.getElementById('auth-message').textContent = 'Registro bem-sucedido. Usuário logado.';
-        document.getElementById('auth-message').style.color = 'green';
-    } catch (error) {
-        console.error("Erro ao registrar usuário:", error);
-        document.getElementById('auth-message').textContent = 'Erro ao registrar usuário: ' + error.message;
-        document.getElementById('auth-message').style.color = 'red';
-    }
-}
-
-async function loginUsuario(email, password) {
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-        document.getElementById('auth-message').textContent = 'Login bem-sucedido.';
-        document.getElementById('auth-message').style.color = 'green';
-    } catch (error) {
-        console.error("Erro ao fazer login:", error);
-        document.getElementById('auth-message').textContent = 'Erro ao fazer login: ' + error.message;
-        document.getElementById('auth-message').style.color = 'red';
-    }
-}
+// ==== INÍCIO SEÇÃO - FUNÇÕES DE AUTENTICAÇÃO FIREBASE (precificacao.js) ====
+// Removidas: registrarUsuario, loginUsuario, enviarEmailRedefinicaoSenha
 
 async function logoutUsuario() {
     try {
         await signOut(auth);
+        window.location.href = "login/login.html"; // Redireciona para a página de login
     } catch (error) {
         console.error("Erro ao fazer logout:", error);
         alert('Erro ao fazer logout.');
     }
 }
 
-async function enviarEmailRedefinicaoSenha(email) {
-    try {
-        await sendPasswordResetEmail(auth, email);
-        document.getElementById('auth-message').textContent = 'Email de redefinição de senha enviado.';
-        document.getElementById('auth-message').style.color = 'blue';
-    } catch (error) {
-        console.error("Erro ao enviar email de redefinição de senha:", error);
-        document.getElementById('auth-message').textContent = 'Erro ao enviar email de redefinição de senha: ' + error.message;
-        document.getElementById('auth-message').style.color = 'red';
-    }
-}
-
 function atualizarInterfaceUsuario(user) {
-    const authContainer = document.getElementById('auth-container');
-    const appContainer = document.getElementById('app-container');
     const userInfoDisplay = document.getElementById('user-info');
-    const authMessageDisplay = document.getElementById('auth-message');
 
     if (user) {
-        authContainer.style.display = 'none';
-        appContainer.style.display = 'block';
         userInfoDisplay.textContent = 'Usuário logado: ' + user.email;
         usuarioLogado = user;
         carregarDados();
     } else {
-        authContainer.style.display = 'block';
-        appContainer.style.display = 'none';
-        userInfoDisplay.textContent = '';
-        authMessageDisplay.textContent = 'Nenhum usuário autenticado';
-        authMessageDisplay.style.color = '#555';
-        usuarioLogado = null;
+         // Se não estiver logado, redireciona para a página de login.
+        window.location.href = 'login/login.html';
     }
 }
-// ==== FIM SEÇÃO - FUNÇÕES DE AUTENTICAÇÃO FIREBASE ====
+// ==== FIM SEÇÃO - FUNÇÕES DE AUTENTICAÇÃO FIREBASE (precificacao.js) ====
 
 // ==== INÍCIO SEÇÃO - FUNÇÕES GERAIS DA PÁGINA ====
 function mostrarSubMenu(submenuId) {
@@ -144,9 +102,6 @@ function limparFormulario(formId) {
     const form = document.getElementById(formId);
     if (form) form.reset();
 }
-
-
-
 // ==== FIM SEÇÃO - FUNÇÕES GERAIS DA PÁGINA ====
 
 // ==== INÍCIO SEÇÃO - FUNÇÕES MATERIAIS E INSUMOS ====
@@ -287,8 +242,6 @@ async function cadastrarMaterialInsumo() {
         alert('Erro ao cadastrar/atualizar material/insumo no Firebase.');
     }
 }
-
-
 
 async function atualizarTabelaMateriaisInsumos() {
     const tbody = document.querySelector('#tabela-materiais-insumos tbody');
@@ -556,7 +509,6 @@ function editarMaoDeObra() { // Removido o async, pois não há await aqui.
 // ==== FIM SEÇÃO - FUNÇÕES MÃO DE OBRA ====
 
 // ==== INÍCIO - NOVA FUNÇÃO: Atualização dos Custos Indiretos ====
-
 async function atualizarCustosIndiretosAposMudancaMaoDeObra() {
     const horasTrabalhadas = maoDeObra.horas;
 
@@ -716,6 +668,7 @@ async function salvarCustoIndiretoPredefinido(descricao, index) {
         alert("Por favor, insira um valor numérico válido.");
     }
 }
+
 function adicionarNovoCustoIndireto() {
     const listaCustos = document.getElementById('lista-custos-indiretos');
     const listItem = document.createElement('li');
@@ -729,11 +682,11 @@ function adicionarNovoCustoIndireto() {
     `;
     listaCustos.appendChild(listItem);
 
-    // ADD EVENT LISTENERS HERE, AFTER APPENDING listItem:
+    // Adiciona event listeners *depois* de adicionar o listItem:
     const salvarBtn = listItem.querySelector('.salvar-novo-custo-indireto-btn');
     const removerBtn = listItem.querySelector('.remover-novo-custo-indireto-btn');
 
-    if (salvarBtn && removerBtn) { // Check if buttons were found
+    if (salvarBtn && removerBtn) { // Verifica se os botões foram encontrados
         salvarBtn.addEventListener('click', function() { salvarNovoCustoIndiretoLista(this); });
         removerBtn.addEventListener('click', function() { removerNovoCustoIndiretoLista(this); });
     }
@@ -908,7 +861,6 @@ function buscarCustosIndiretosCadastrados() {
     });
 }
 
-
 // MODIFICADA:  zerarCustoIndireto (agora zera valorPorHora também, e lida com Firestore)
 async function zerarCustoIndireto(identificador, tipo) {
     if (tipo === 'predefinido') {
@@ -951,7 +903,6 @@ async function zerarCustoIndireto(identificador, tipo) {
     salvarDados();
 }
 // ==== FIM SEÇÃO - FUNÇÕES CUSTOS INDIRETOS ====
-
 
 // ==== INÍCIO SEÇÃO - FUNÇÕES PRODUTOS CADASTRADOS ====
 //MODIFICADA: cadastrarProduto - Adiciona materialId ao item
@@ -1359,7 +1310,7 @@ async function editarProduto(produtoId) {
 
     // Preenche a tabela de materiais com os dados do produto
     produtoEmEdicao.materiais.forEach(item => {
-        
+
               // Encontra o material original completo no array 'materiais' USANDO O ID
         const materialCompleto = materiais.find(m => m.id === item.materialId);
 
@@ -1965,21 +1916,31 @@ function limparPagina() {
 
 // ==== INÍCIO SEÇÃO - EVENT LISTENERS GERAIS (DOMContentLoaded) ====
 document.addEventListener('DOMContentLoaded', () => {
-    onAuthStateChanged(auth, atualizarInterfaceUsuario);
-
-    document.getElementById('registerBtn').addEventListener('click', () => {
-        registrarUsuario(document.getElementById('email').value, document.getElementById('password').value);
+    // onAuthStateChanged *antes* de qualquer outra lógica de autenticação
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        // Usuário está logado, mostra a aplicação
+        atualizarInterfaceUsuario(user);
+      } else {
+        // Usuário não está logado, redireciona para o login
+        window.location.href = 'login/login.html';
+      }
     });
 
-    document.getElementById('loginBtn').addEventListener('click', () => {
-        loginUsuario(document.getElementById('email').value, document.getElementById('password').value);
-    });
+
+    //Removido, pois foi para login.js: document.getElementById('registerBtn').addEventListener('click', () => {
+    //Removido, pois foi para login.js:    registrarUsuario(document.getElementById('email').value, document.getElementById('password').value);
+    //Removido, pois foi para login.js:});
+
+    //Removido, pois foi para login.js: document.getElementById('loginBtn').addEventListener('click', () => {
+    //Removido, pois foi para login.js:    loginUsuario(document.getElementById('email').value, document.getElementById('password').value);
+    //Removido, pois foi para login.js:});
 
     document.getElementById('logoutBtn').addEventListener('click', logoutUsuario);
 
-    document.getElementById('forgotPasswordBtn').addEventListener('click', () => {
-        enviarEmailRedefinicaoSenha(document.getElementById('email').value);
-    });
+    //Removido, pois foi para login.js: document.getElementById('forgotPasswordBtn').addEventListener('click', () => {
+    //Removido, pois foi para login.js:    enviarEmailRedefinicaoSenha(document.getElementById('email').value);
+    //Removido, pois foi para login.js:});
 
     document.querySelectorAll('input[name="tipo-material"]').forEach(radio => {
         radio.addEventListener('change', function () {
