@@ -111,7 +111,17 @@ body {
 }
 
 /* Logo na tela de autenticação */
-.auth-form .logo-container{
+.auth-form .logo-container {
     margin-top: 0px;
     margin-bottom: 10px;
 }
+
+/* Adicione este bloco para controlar o tamanho da logo */
+.auth-form .logo-container #logo {
+    max-width: 150px; /* Ou o tamanho que você desejar */
+    height: auto;     /* Mantém a proporção */
+    display: block;   /* Garante que a margem automática funcione */
+    margin: 0 auto;    /* Centraliza horizontalmente */
+}
+
+
