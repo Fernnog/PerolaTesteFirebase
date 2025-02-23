@@ -32,7 +32,7 @@ async function registrarUsuario(email, password) {
         document.getElementById('auth-message').textContent = 'Registro bem-sucedido.';
         document.getElementById('auth-message').style.color = 'green';
         // Redireciona para a página principal após o registro
-        window.location.href = "../precificacao.html";
+        window.location.href = "../index.html";
     } catch (error) {
         console.error("Erro ao registrar usuário:", error);
         document.getElementById('auth-message').textContent = 'Erro ao registrar usuário: ' + error.message;
@@ -46,7 +46,7 @@ async function loginUsuario(email, password) {
         document.getElementById('auth-message').textContent = 'Login bem-sucedido.';
         document.getElementById('auth-message').style.color = 'green';
         // Redireciona para a página principal após o login
-        window.location.href = "../precificacao.html";
+        window.location.href = "../index.html";
     } catch (error) {
         console.error("Erro ao fazer login:", error);
         document.getElementById('auth-message').textContent = 'Erro ao fazer login: ' + error.message;
@@ -95,3 +95,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 // ==== FIM SEÇÃO - EVENT LISTENERS (login.js) ====
+
