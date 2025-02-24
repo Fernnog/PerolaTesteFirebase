@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Pérola Rara</title>
     <link rel="stylesheet" href="login.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div id="auth-container" class="auth-container">
@@ -26,8 +27,11 @@
                 <button type="button" id="loginBtn">Entrar</button>
             </div>
             <button type="button" id="forgotPasswordBtn" class="forgot-password">Esqueci minha senha?</button>
-            <p id="auth-message" class="auth-message">Nenhum usuário autenticado</p>
+            <p id="auth-message" class="auth-message"></p> {/* Removido texto inicial */}
             <p class="slogan"><strong><em>"Pérola Rara, onde a arte se encontra com o amor em cada detalhe".</em></strong></p>
+        </div>
+         <div id="loading-indicator" style="display: none;">
+            <img src="loading.gif" alt="Carregando...">  <!-- Substitua 'loading.gif' pelo caminho do seu GIF de loading -->
         </div>
     </div>
     <script src="login.js" type="module"></script>
