@@ -124,4 +124,12 @@ body {
     margin: 0 auto;    /* Centraliza horizontalmente */
 }
 
-
+/* Estilos para o indicador de carregamento */
+#loading-indicator {
+    position: fixed; /* Fixo no centro da tela */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000; /* Garante que fique acima de tudo */
+    /* Estilos adicionais para o GIF (tamanho, borda, etc.) */
+}
