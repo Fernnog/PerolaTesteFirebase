@@ -1195,43 +1195,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
            //Se tiver usuário logado
             console.log("Usuário autenticado:", user.email);
-            btnLogout.style.display = "inline-block"; // Mostra o botão de logout
-          // 1. Cria a div
-        const userDiv = document.createElement('div');
-        userDiv.style.backgroundColor = 'var(--cor-autenticacao-2)'; // Cor de fundo
-        userDiv.style.padding = '10px'; // Espaçamento interno
-        userDiv.style.borderRadius = '5px'; // Bordas arredondadas (opcional)
-        userDiv.style.display = 'flex'; // Para alinhar email e botão
-        userDiv.style.alignItems = 'center'; // Alinha verticalmente
-        userDiv.style.marginBottom = '10px';       //Alinhamento horizontal
-
-        // 2. Cria o span do email
-        const emailSpan = document.createElement('span');
+           const emailSpan = document.createElement('span');
         emailSpan.textContent = `Usuário: ${user.email} `;
         emailSpan.style.marginRight = '10px';
+        emailSpan.style.backgroundColor = 'var(--cor-autenticacao-2)'; // Cor de fundo
+        emailSpan.style.padding = '5px 10px'; // Espaçamento interno
+        emailSpan.style.borderRadius = '5px'; // Bordas arredondadas (opcional)
 
-        // 3. Adiciona o email e o botão à div
-        userDiv.appendChild(emailSpan);
-        userDiv.appendChild(btnLogout); // Adiciona o botão *dentro* da div
+            // Insere o span *antes* do botão de logout no menu
+            const navList = document.querySelector('nav ul'); // Pega a lista do menu
+            navList.insertBefore(emailSpan, btnLogout.parentNode); // Insere antes do <li> do logout
 
-        // 4. Insere a div no menu
-        const navList = document.querySelector('nav ul');
-        navList.insertBefore(userDiv, btnLogout.parentNode); // Insere *antes* do <li> original
-        btnLogout.parentNode.style.display = "none";       //Ocultar o botão logout original.
-
-        btnLogout.style.display = "inline-block"; // Mostra o botão de logout (agora dentro da div)
-
-  carregarDados(); // Carrega os dados
+            btnLogout.style.display = "inline-block"; // Mostra o botão de logout
+            carregarDados(); // Carrega os dados
         } else {
             // Se não tiver usuário logado
-// Remove a div (se existir)
-        const userDiv = document.querySelector('nav ul div'); // Procura a div
-        if (userDiv) {
-            userDiv.remove();
-        }
             console.log("Nenhum usuário autenticado.");
             btnLogout.style.display = "none";  // Oculta o botão de logout
-            // Limpa os dados (opcional, dependendo do seu caso de uso)
+
+// Remove o span do email (se existir)
+           // Remove o span do email (se existir)
+            const emailSpan = document.querySelector('nav ul span');
+            if (emailSpan) {
+                emailSpan.remove();
+            }
+           
+
+ // Limpa os dados (opcional, dependendo do seu caso de uso)
             orcamentos = [];
             pedidos = [];
             numeroOrcamento = 1;
@@ -1246,3 +1236,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializar campos moeda para 'R$ 0,00' no carregamento da página
     limparCamposMoeda();
 });
+
+
