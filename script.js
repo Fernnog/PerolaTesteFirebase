@@ -1196,7 +1196,19 @@ document.addEventListener('DOMContentLoaded', () => {
            //Se tiver usuário logado
             console.log("Usuário autenticado:", user.email);
             btnLogout.style.display = "inline-block"; // Mostra o botão de logout
-            carregarDados(); // Carrega os dados
+// Cria um elemento span para o email
+            const emailSpan = document.createElement('span');
+            emailSpan.textContent = `Usuário: ${user.email} `; // Espaço para separar do botão
+            emailSpan.style.marginRight = '10px'; // Adiciona uma margem à direita
+
+            // Insere o span *antes* do botão de logout no menu
+            const navList = document.querySelector('nav ul'); // Pega a lista do menu
+            navList.insertBefore(emailSpan, btnLogout.parentNode); // Insere antes do <li> do logout
+
+            btnLogout.style.display = "inline-block"; // Mostra o botão de logout
+            //          
+
+ carregarDados(); // Carrega os dados
         } else {
             // Se não tiver usuário logado
             console.log("Nenhum usuário autenticado.");
@@ -1216,3 +1228,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializar campos moeda para 'R$ 0,00' no carregamento da página
     limparCamposMoeda();
 });
+
